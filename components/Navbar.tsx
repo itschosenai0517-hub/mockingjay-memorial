@@ -65,8 +65,16 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* Mobile: three finger salute icon */}
-        <div className="md:hidden text-flame-orange text-xl select-none">☝️✌️🤟</div>
+        {/* Mobile: three finger salute — SVG */}
+        <div className="md:hidden select-none">
+          <svg viewBox="0 0 36 44" className="w-7 h-8 fill-flame-orange/80" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="22" width="20" height="16" rx="4" />
+            <rect x="10" y="8" width="5" height="16" rx="2.5" />
+            <rect x="16.5" y="5" width="5" height="19" rx="2.5" />
+            <rect x="23" y="8" width="5" height="16" rx="2.5" />
+            <rect x="4" y="26" width="5" height="8" rx="2.5" transform="rotate(-15 6 30)" />
+          </svg>
+        </div>
       </div>
     </motion.nav>
   )

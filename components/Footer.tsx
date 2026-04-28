@@ -14,18 +14,25 @@ export default function Footer() {
           transition={{ duration: 0.8 }}
           className="mb-8"
         >
-          <div className="flex justify-center gap-2 mb-4">
-            {['☝️', '✌️', '🤟'].map((emoji, i) => (
-              <motion.span
+          <div className="flex justify-center gap-6 mb-4">
+            {[
+              /* Index finger raised */
+              <svg key="idx" viewBox="0 0 20 30" className="w-7 h-10 fill-flame-orange/70"><rect x="7" y="0" width="6" height="18" rx="3"/><rect x="2" y="14" width="16" height="12" rx="4"/><rect x="0" y="18" width="6" height="7" rx="3" transform="rotate(-10 3 21)"/></svg>,
+              /* Two fingers — V */
+              <svg key="v" viewBox="0 0 24 30" className="w-7 h-10 fill-flame-orange/70"><rect x="2" y="0" width="6" height="18" rx="3" transform="rotate(-6 5 9)"/><rect x="10" y="0" width="6" height="18" rx="3" transform="rotate(6 13 9)"/><rect x="4" y="14" width="16" height="12" rx="4"/><rect x="0" y="18" width="5" height="6" rx="2.5" transform="rotate(-15 2 21)"/></svg>,
+              /* Three fingers */
+              <svg key="three" viewBox="0 0 28 30" className="w-7 h-10 fill-flame-orange/70"><rect x="2" y="2" width="5" height="16" rx="2.5" transform="rotate(-6 4 10)"/><rect x="9" y="0" width="5" height="18" rx="2.5"/><rect x="16" y="2" width="5" height="16" rx="2.5" transform="rotate(6 18 10)"/><rect x="4" y="14" width="20" height="12" rx="4"/><rect x="0" y="18" width="5" height="7" rx="2.5" transform="rotate(-15 2 22)"/></svg>,
+            ].map((icon, i) => (
+              <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.2, duration: 0.5 }}
-                className="text-3xl salute-rise"
+                className="salute-rise"
               >
-                {emoji}
-              </motion.span>
+                {icon}
+              </motion.div>
             ))}
           </div>
           <motion.div

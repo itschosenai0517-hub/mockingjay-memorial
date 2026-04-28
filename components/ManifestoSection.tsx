@@ -84,13 +84,20 @@ export default function ManifestoSection() {
 
           {/* Manifesto text placeholder */}
           <div className="space-y-5">
+            {/* Decorative rule */}
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gold/20" />
+              <div className="w-1.5 h-1.5 rotate-45 bg-flame-orange/50" />
+              <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gold/20" />
+            </div>
+
             <motion.p
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
               transition={{ delay: 0.4, duration: 0.8 }}
               className="font-caveat text-xl md:text-2xl text-parchment/90 leading-relaxed"
             >
-              [YOUR_TEXT_HERE — 在此填入您的個人感言與反抗宣言]
+              She never asked to be a symbol. She only asked to keep the people she loved alive. But sometimes the most revolutionary act is simply to refuse — to refuse to kneel, to refuse to forget, to refuse to let the fire inside you die.
             </motion.p>
 
             <motion.p
@@ -108,8 +115,15 @@ export default function ManifestoSection() {
               transition={{ delay: 0.8, duration: 0.8 }}
               className="font-noto text-sm text-gold/60 leading-relaxed italic"
             >
-              點燃革命的火花並非偉大的壯舉——而是一個女孩，她拒絕讓恐懼封住她的口。她站在競技場上，選擇了愛而非生存，選擇了人性而非策略。
+              她從未要求成為一個象徵。她只要求讓她愛的人活下去。但有時候，最革命性的行動就是拒絕——拒絕跪下，拒絕遺忘，拒絕讓內心的火焰熄滅。點燃革命的火花並非偉大的壯舉——而是一個女孩，她拒絕讓恐懼封住她的口。她站在競技場上，選擇了愛而非生存，選擇了人性而非策略。
             </motion.p>
+
+            {/* Decorative rule */}
+            <div className="flex items-center gap-3 my-2">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gold/20" />
+              <div className="w-1.5 h-1.5 rotate-45 bg-flame-orange/50" />
+              <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gold/20" />
+            </div>
 
             <motion.p
               initial={{ opacity: 0 }}
@@ -117,7 +131,16 @@ export default function ManifestoSection() {
               transition={{ delay: 1.0, duration: 0.8 }}
               className="font-caveat text-xl text-flame-orange/80 leading-relaxed"
             >
-              [ADD YOUR OWN WORDS HERE — 加入您自己的話語]
+              If we burn, you burn with us. The odds were never in our favour — and that is exactly why we fought.
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={isInView ? { opacity: 1 } : {}}
+              transition={{ delay: 1.1, duration: 0.8 }}
+              className="font-noto text-xs text-flame-orange/50 leading-relaxed italic"
+            >
+              若我們燃燒，你也將與我們同焚。勝算從未站在我們這邊——而這正是我們戰鬥的原因。
             </motion.p>
           </div>
 
