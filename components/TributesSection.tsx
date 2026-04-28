@@ -11,6 +11,8 @@ const tributes = [
     role: 'The Mockingjay / 反抗之鳥',
     tribute: 'The girl on fire who became a symbol, a spark, and a revolution.',
     tributeZh: '那個燃燒的女孩，成為了一個象徵、一道火花，以及一場革命。',
+    // E: quote audio line (spoken via Web Speech API)
+    voiceLine: 'If we burn, you burn with us.',
     status: 'ALIVE',
     statusZh: '存活',
     threat: 'EXTREME',
@@ -23,6 +25,7 @@ const tributes = [
     role: 'The Boy with the Bread / 麵包男孩',
     tribute: 'His love was an act of defiance. His survival, an act of grace.',
     tributeZh: '他的愛是一種反抗，他的存活是一種恩典。',
+    voiceLine: 'Stay alive. That is the only thing that matters.',
     status: 'ALIVE',
     statusZh: '存活',
     threat: 'HIGH',
@@ -35,6 +38,7 @@ const tributes = [
     role: 'Victor & Rebel Spy / 勝者與反抗間諜',
     tribute: 'He looked like a god but fought like a man — for Annie, always for Annie.',
     tributeZh: '他外表如神祇，卻以凡人之姿戰鬥——為了安妮，永遠為了安妮。',
+    voiceLine: 'It takes ten times as long to put yourself back together as it does to fall apart.',
     status: 'KIA',
     statusZh: '陣亡',
     threat: 'CRITICAL',
@@ -47,6 +51,7 @@ const tributes = [
     role: 'The Little Bird / 小小的鳥',
     tribute: 'Her song still echoes through the fields. She was the first true spark.',
     tributeZh: '她的歌聲仍迴盪在田野間。她是第一道真正的火花。',
+    voiceLine: 'Will you sing for me? Like your sister does.',
     status: 'KIA',
     statusZh: '陣亡',
     threat: 'LOW',
@@ -59,6 +64,7 @@ const tributes = [
     role: 'Mentor & Survivor / 導師與倖存者',
     tribute: "He drank to forget. He stayed to make sure they didn't have to.",
     tributeZh: '他飲酒是為了忘記；他留下來是為了確保他們不必這樣做。',
+    voiceLine: 'Embrace the probability of your imminent death, and know in your heart that there is nothing I can do to save you.',
     status: 'ALIVE',
     statusZh: '存活',
     threat: 'MODERATE',
@@ -90,10 +96,22 @@ function useTypewriter(text: string, speed = 35, startDelay = 0) {
   return displayed
 }
 
+// E: Play quote via Web Speech API
+function speakLine(text: string) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+  window.speechSynthesis.cancel()
+  const utt = new SpeechSynthesisUtterance(text)
+  utt.lang = 'en-US'
+  utt.rate = 0.88
+  utt.pitch = 0.95
+  window.speechSynthesis.speak(utt)
+}
+
 function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: number }) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-60px' })
   const [unlocked, setUnlocked] = useState(false)
+  const [speaking, setSpeaking] = useState(false)
   const unlockText = useTypewriter(
     unlocked ? `FILE UNLOCKED — 檔案已解鎖 — ${tribute.id}` : '',
     40,
@@ -106,6 +124,26 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
       return () => clearTimeout(t)
     }
   }, [isInView, index])
+
+  // E: speak handler
+  const handleSpeak = () => {
+    if (speaking) {
+      window.speechSynthesis?.cancel()
+      setSpeaking(false)
+      return
+    }
+    setSpeaking(true)
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+      const utt = new SpeechSynthesisUtterance(tribute.voiceLine)
+      utt.lang = 'en-US'
+      utt.rate = 0.88
+      utt.pitch = 0.95
+      utt.onend = () => setSpeaking(false)
+      utt.onerror = () => setSpeaking(false)
+      window.speechSynthesis.speak(utt)
+    }
+  }
 
   const isKIA = tribute.status === 'KIA'
   const threatColors: Record<string, string> = {
@@ -127,11 +165,7 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
       {/* CRT scanlines */}
       <div className="absolute inset-0 pointer-events-none z-10">
         {Array.from({ length: 30 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-full h-px bg-white/[0.015]"
-            style={{ top: `${i * 3.4}%` }}
-          />
+          <div key={i} className="absolute w-full h-px bg-white/[0.015]" style={{ top: `${i * 3.4}%` }} />
         ))}
       </div>
 
@@ -203,6 +237,35 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
             「{tribute.tributeZh}」
           </p>
         </div>
+
+        {/* E: Voice quote button */}
+        <button
+          onClick={handleSpeak}
+          className={`mt-4 w-full flex items-center justify-center gap-2 py-2 px-3 border rounded-sm text-xs font-cinzel tracking-widest transition-all duration-300 ${
+            speaking
+              ? 'border-flame-orange/70 text-flame-orange bg-flame-orange/10'
+              : 'border-ash-gray/30 text-ash-gray hover:border-flame-orange/50 hover:text-flame-orange hover:bg-flame-orange/5'
+          }`}
+        >
+          {/* Speaker icon */}
+          <svg viewBox="0 0 16 16" className="w-3.5 h-3.5 fill-current">
+            {speaking ? (
+              <>
+                <rect x="1" y="5" width="3" height="6" rx="0.5" />
+                <path d="M5 3 L5 13 L9 10 L9 6 Z" />
+                <path d="M11 5 Q13 8 11 11" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+                <path d="M12.5 3.5 Q15.5 8 12.5 12.5" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+              </>
+            ) : (
+              <>
+                <rect x="1" y="5" width="3" height="6" rx="0.5" />
+                <path d="M5 3 L5 13 L9 10 L9 6 Z" />
+                <path d="M11 6 Q12.5 8 11 10" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+              </>
+            )}
+          </svg>
+          {speaking ? 'PLAYING... 播放中' : 'PLAY QUOTE 播放語音'}
+        </button>
       </div>
 
       {/* Corner decorations */}

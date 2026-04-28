@@ -14,6 +14,12 @@ interface Particle {
   type: 'ash' | 'ember'
 }
 
+// D: Respect prefers-reduced-motion + cap particle count on low-perf devices
+const MAX_PARTICLES_NORMAL = 80
+const MAX_PARTICLES_LOW = 30
+const SPAWN_RATE_NORMAL = 0.12
+const SPAWN_RATE_LOW = 0.05
+
 export default function AshCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -23,8 +29,17 @@ export default function AshCanvas() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // D: Check prefers-reduced-motion
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReduced) return  // Skip particle animation entirely
+
     let animationId: number
     let particles: Particle[] = []
+
+    // D: Rough performance budget – use navigator.hardwareConcurrency as proxy
+    const isLowPerf = typeof navigator !== 'undefined' && navigator.hardwareConcurrency <= 2
+    const maxParticles = isLowPerf ? MAX_PARTICLES_LOW : MAX_PARTICLES_NORMAL
+    const spawnRate = isLowPerf ? SPAWN_RATE_LOW : SPAWN_RATE_NORMAL
 
     const resize = () => {
       canvas.width = window.innerWidth
@@ -45,7 +60,9 @@ export default function AshCanvas() {
       type: Math.random() > 0.85 ? 'ember' : 'ash',
     })
 
-    for (let i = 0; i < 60; i++) {
+    // Seed initial particles
+    const seedCount = Math.min(40, maxParticles)
+    for (let i = 0; i < seedCount; i++) {
       const p = createParticle()
       p.y = Math.random() * canvas.height
       particles.push(p)
@@ -88,11 +105,11 @@ export default function AshCanvas() {
         }
       })
 
-      if (Math.random() < 0.15) {
+      // D: Controlled spawn with hard cap
+      if (Math.random() < spawnRate && particles.length < maxParticles) {
         particles.push(createParticle())
-        if (particles.length > 120) {
-          particles.splice(0, 1)
-        }
+      } else if (particles.length > maxParticles) {
+        particles.splice(0, particles.length - maxParticles)
       }
 
       animationId = requestAnimationFrame(draw)

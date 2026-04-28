@@ -1,11 +1,65 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
+
+// G: Typewriter hook for manifesto text
+function useTypewriter(text: string, speed = 28, trigger = false) {
+  const [displayed, setDisplayed] = useState('')
+  const [done, setDone] = useState(false)
+
+  useEffect(() => {
+    if (!trigger) return
+    setDisplayed('')
+    setDone(false)
+    let i = 0
+    const iv = setInterval(() => {
+      i++
+      setDisplayed(text.slice(0, i))
+      if (i >= text.length) { clearInterval(iv); setDone(true) }
+    }, speed)
+    return () => clearInterval(iv)
+  }, [trigger, text, speed])
+
+  return { displayed, done }
+}
+
+const PARAGRAPH_1 = "She never asked to be a symbol. She only asked to keep the people she loved alive. But sometimes the most revolutionary act is simply to refuse — to refuse to kneel, to refuse to forget, to refuse to let the fire inside you die."
+const PARAGRAPH_2 = "The spark that lit the revolution was not a grand gesture — it was a girl who refused to let fear silence her. Who stood in the arena and chose love over survival, humanity over strategy."
+const PARAGRAPH_3 = "If we burn, you burn with us. The odds were never in our favour — and that is exactly why we fought."
 
 export default function ManifestoSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
+
+  // G: stagger paragraph reveals
+  const [p1Started, setP1Started] = useState(false)
+  const [p2Started, setP2Started] = useState(false)
+  const [p3Started, setP3Started] = useState(false)
+
+  const p1 = useTypewriter(PARAGRAPH_1, 26, p1Started)
+  const p2 = useTypewriter(PARAGRAPH_2, 26, p2Started)
+  const p3 = useTypewriter(PARAGRAPH_3, 30, p3Started)
+
+  useEffect(() => {
+    if (!isInView) return
+    const t1 = setTimeout(() => setP1Started(true), 600)
+    return () => clearTimeout(t1)
+  }, [isInView])
+
+  useEffect(() => {
+    if (p1.done) {
+      const t = setTimeout(() => setP2Started(true), 300)
+      return () => clearTimeout(t)
+    }
+  }, [p1.done])
+
+  useEffect(() => {
+    if (p2.done) {
+      const t = setTimeout(() => setP3Started(true), 300)
+      return () => clearTimeout(t)
+    }
+  }, [p2.done])
 
   return (
     <section id="manifesto" className="relative py-24 px-6 z-20">
@@ -62,7 +116,7 @@ export default function ManifestoSection() {
             ))}
           </div>
 
-          {/* Stain / aged paper marks */}
+          {/* Aged marks */}
           <div className="absolute top-8 right-8 w-16 h-16 rounded-full bg-flame-orange/3 blur-2xl" />
           <div className="absolute bottom-12 left-6 w-12 h-12 rounded-full bg-gold/4 blur-xl" />
 
@@ -82,73 +136,77 @@ export default function ManifestoSection() {
             </div>
           </div>
 
-          {/* Manifesto text placeholder */}
+          {/* G: Typewriter manifesto text */}
           <div className="space-y-5">
-            {/* Decorative rule */}
             <div className="flex items-center gap-3 mb-2">
               <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gold/20" />
               <div className="w-1.5 h-1.5 rotate-45 bg-flame-orange/50" />
               <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gold/20" />
             </div>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={isInView ? { opacity: 1 } : {}}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="font-caveat text-xl md:text-2xl text-parchment/90 leading-relaxed"
-            >
-              She never asked to be a symbol. She only asked to keep the people she loved alive. But sometimes the most revolutionary act is simply to refuse — to refuse to kneel, to refuse to forget, to refuse to let the fire inside you die.
-            </motion.p>
+            {/* Paragraph 1 */}
+            <div className="font-caveat text-xl md:text-2xl text-parchment/90 leading-relaxed min-h-[4rem]">
+              {p1.displayed}
+              {p1Started && !p1.done && (
+                <span className="inline-block w-0.5 h-5 bg-flame-orange align-middle ml-0.5 animate-pulse" />
+              )}
+            </div>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={isInView ? { opacity: 1 } : {}}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="font-caveat text-lg text-parchment/70 leading-relaxed"
-            >
-              The spark that lit the revolution was not a grand gesture — it was a girl who refused to let fear silence her. Who stood in the arena and chose love over survival, humanity over strategy.
-            </motion.p>
+            {/* Paragraph 2 */}
+            {p1.done && (
+              <div className="font-caveat text-lg text-parchment/70 leading-relaxed min-h-[3.5rem]">
+                {p2.displayed}
+                {p2Started && !p2.done && (
+                  <span className="inline-block w-0.5 h-5 bg-flame-orange align-middle ml-0.5 animate-pulse" />
+                )}
+              </div>
+            )}
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={isInView ? { opacity: 1 } : {}}
-              transition={{ delay: 0.8, duration: 0.8 }}
-              className="font-noto text-sm text-gold/60 leading-relaxed italic"
-            >
-              她從未要求成為一個象徵。她只要求讓她愛的人活下去。但有時候，最革命性的行動就是拒絕——拒絕跪下，拒絕遺忘，拒絕讓內心的火焰熄滅。點燃革命的火花並非偉大的壯舉——而是一個女孩，她拒絕讓恐懼封住她的口。她站在競技場上，選擇了愛而非生存，選擇了人性而非策略。
-            </motion.p>
+            {/* Chinese translation – fades in after p2 */}
+            {p2.done && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+                className="font-noto text-sm text-gold/60 leading-relaxed italic"
+              >
+                她從未要求成為一個象徵。她只要求讓她愛的人活下去。但有時候，最革命性的行動就是拒絕——拒絕跪下，拒絕遺忘，拒絕讓內心的火焰熄滅。點燃革命的火花並非偉大的壯舉——而是一個女孩，她拒絕讓恐懼封住她的口。
+              </motion.p>
+            )}
 
-            {/* Decorative rule */}
             <div className="flex items-center gap-3 my-2">
               <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gold/20" />
               <div className="w-1.5 h-1.5 rotate-45 bg-flame-orange/50" />
               <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gold/20" />
             </div>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={isInView ? { opacity: 1 } : {}}
-              transition={{ delay: 1.0, duration: 0.8 }}
-              className="font-caveat text-xl text-flame-orange/80 leading-relaxed"
-            >
-              If we burn, you burn with us. The odds were never in our favour — and that is exactly why we fought.
-            </motion.p>
+            {/* Paragraph 3 */}
+            {p2.done && (
+              <div className="font-caveat text-xl text-flame-orange/80 leading-relaxed min-h-[2rem]">
+                {p3.displayed}
+                {p3Started && !p3.done && (
+                  <span className="inline-block w-0.5 h-5 bg-flame-orange align-middle ml-0.5 animate-pulse" />
+                )}
+              </div>
+            )}
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={isInView ? { opacity: 1 } : {}}
-              transition={{ delay: 1.1, duration: 0.8 }}
-              className="font-noto text-xs text-flame-orange/50 leading-relaxed italic"
-            >
-              若我們燃燒，你也將與我們同焚。勝算從未站在我們這邊——而這正是我們戰鬥的原因。
-            </motion.p>
+            {p3.done && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+                className="font-noto text-xs text-flame-orange/50 leading-relaxed italic"
+              >
+                若我們燃燒，你也將與我們同焚。勝算從未站在我們這邊——而這正是我們戰鬥的原因。
+              </motion.p>
+            )}
           </div>
 
           {/* Signature */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 1.2, duration: 0.8 }}
+            animate={p3.done ? { opacity: 1 } : {}}
+            transition={{ delay: 0.5, duration: 0.8 }}
             className="mt-10 flex items-end justify-between"
           >
             <div>
