@@ -15,8 +15,8 @@ export default function NotFound() {
   const [shown, setShown] = useState<string[]>([])
 
   useEffect(() => {
-    LINES.forEach((line, i) => {
-      setTimeout(() => setShown((prev) => [...prev, line]), i * 600 + 400)
+    LINES.forEach((line: string, i: number) => {
+      setTimeout(() => setShown((prev: string[]) => [...prev, line]), i * 600 + 400)
     })
   }, [])
 
@@ -56,7 +56,7 @@ export default function NotFound() {
         {/* Terminal lines */}
         <div className="border border-flame-orange/20 bg-charcoal/60 rounded-sm p-6 mb-8 text-left font-cinzel text-xs tracking-widest">
           <div className="text-flame-orange/60 mb-3">{'>'} DISTRICT 12 REBEL NETWORK — TERMINAL v1.3</div>
-          {shown.map((line, i) => (
+          {shown.map((line: string, i: number) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, x: -10 }}
@@ -81,15 +81,15 @@ export default function NotFound() {
           <svg viewBox="0 0 48 48" className="w-12 h-12 mx-auto fill-none opacity-60" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <radialGradient id="nf-body" cx="50%" cy="40%" r="55%">
-                <stop offset="0%" stopColor="#ffb347" />
-                <stop offset="55%" stopColor="#ff6b00" />
+                <stop offset="0%"   stopColor="#ffb347" />
+                <stop offset="55%"  stopColor="#ff6b00" />
                 <stop offset="100%" stopColor="#cc2200" />
               </radialGradient>
             </defs>
-            <path d="M24 22 Q16 14 4 10 Q10 18 10 24 Q17 20 24 22Z" fill="url(#nf-body)" />
+            <path d="M24 22 Q16 14 4 10 Q10 18 10 24 Q17 20 24 22Z"  fill="url(#nf-body)" />
             <path d="M24 22 Q32 14 44 10 Q38 18 38 24 Q31 20 24 22Z" fill="url(#nf-body)" />
             <ellipse cx="24" cy="27" rx="3.5" ry="5" fill="url(#nf-body)" />
-            <circle cx="24" cy="19" r="3.8" fill="url(#nf-body)" />
+            <circle  cx="24" cy="19" r="3.8"        fill="url(#nf-body)" />
             <path d="M26.5 18 L31.5 20 L26.5 22Z" fill="#d4af37" />
             <circle cx="26" cy="18.5" r="1.1" fill="#1a0600" />
             <path d="M24 32 Q21 38 19 44 Q22 38 24 35 Q26 38 29 44 Q27 38 24 32Z" fill="url(#nf-body)" opacity="0.88" />

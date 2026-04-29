@@ -1,28 +1,118 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
-import { useRef, useState } from 'react'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
+import React, { useRef, useState } from 'react'
 
 const districts = [
-  { num: 1,  enName: 'Luxury',      zhName: '奢侈品',    industry: 'Luxury goods for the Capitol', zhIndustry: '為首都製造奢侈品',   color: '#a78bfa', rebellion: 'Low',  zhNum: '一' },
-  { num: 2,  enName: 'Masonry',     zhName: '石造工業',  industry: 'Stone & weapons manufacturing', zhIndustry: '石材與武器製造',     color: '#94a3b8', rebellion: 'Low',  zhNum: '二' },
-  { num: 3,  enName: 'Technology',  zhName: '科技',      industry: 'Electronics & technology',      zhIndustry: '電子與科技產品',     color: '#60a5fa', rebellion: 'Mid',  zhNum: '三' },
-  { num: 4,  enName: 'Fishing',     zhName: '漁業',      industry: 'Fishing & seafood',             zhIndustry: '漁業與海產',         color: '#22d3ee', rebellion: 'High', zhNum: '四' },
-  { num: 5,  enName: 'Power',       zhName: '電力',      industry: 'Electrical power generation',   zhIndustry: '電力能源生產',       color: '#facc15', rebellion: 'Mid',  zhNum: '五' },
-  { num: 6,  enName: 'Transport',   zhName: '運輸',      industry: 'Transportation & logistics',    zhIndustry: '交通運輸業',         color: '#f97316', rebellion: 'Mid',  zhNum: '六' },
-  { num: 7,  enName: 'Lumber',      zhName: '木材',      industry: 'Lumber & paper industries',     zhIndustry: '木材與造紙業',       color: '#4ade80', rebellion: 'Mid',  zhNum: '七' },
-  { num: 8,  enName: 'Textiles',    zhName: '紡織',      industry: 'Textiles & clothing',           zhIndustry: '紡織品與服裝',       color: '#f472b6', rebellion: 'High', zhNum: '八' },
-  { num: 9,  enName: 'Grain',       zhName: '穀物',      industry: 'Grain & food processing',       zhIndustry: '穀物與食品加工',     color: '#d4af37', rebellion: 'Mid',  zhNum: '九' },
-  { num: 10, enName: 'Livestock',   zhName: '畜牧',      industry: 'Livestock & animal husbandry',  zhIndustry: '畜牧業',             color: '#a3e635', rebellion: 'Low',  zhNum: '十' },
-  { num: 11, enName: 'Agriculture', zhName: '農業',      industry: 'Agriculture & farming',         zhIndustry: '農業與耕作',         color: '#86efac', rebellion: 'High', zhNum: '十一' },
+  { num: 1,  enName: 'Luxury',      zhName: '奢侈品',    industry: 'Luxury goods for the Capitol', zhIndustry: '為首都製造奢侈品',   color: '#a78bfa', rebellion: 'Low',           zhNum: '一' },
+  { num: 2,  enName: 'Masonry',     zhName: '石造工業',  industry: 'Stone & weapons manufacturing', zhIndustry: '石材與武器製造',     color: '#94a3b8', rebellion: 'Low',           zhNum: '二' },
+  { num: 3,  enName: 'Technology',  zhName: '科技',      industry: 'Electronics & technology',      zhIndustry: '電子與科技產品',     color: '#60a5fa', rebellion: 'Mid',           zhNum: '三' },
+  { num: 4,  enName: 'Fishing',     zhName: '漁業',      industry: 'Fishing & seafood',             zhIndustry: '漁業與海產',         color: '#22d3ee', rebellion: 'High',          zhNum: '四' },
+  { num: 5,  enName: 'Power',       zhName: '電力',      industry: 'Electrical power generation',   zhIndustry: '電力能源生產',       color: '#facc15', rebellion: 'Mid',           zhNum: '五' },
+  { num: 6,  enName: 'Transport',   zhName: '運輸',      industry: 'Transportation & logistics',    zhIndustry: '交通運輸業',         color: '#f97316', rebellion: 'Mid',           zhNum: '六' },
+  { num: 7,  enName: 'Lumber',      zhName: '木材',      industry: 'Lumber & paper industries',     zhIndustry: '木材與造紙業',       color: '#4ade80', rebellion: 'Mid',           zhNum: '七' },
+  { num: 8,  enName: 'Textiles',    zhName: '紡織',      industry: 'Textiles & clothing',           zhIndustry: '紡織品與服裝',       color: '#f472b6', rebellion: 'High',          zhNum: '八' },
+  { num: 9,  enName: 'Grain',       zhName: '穀物',      industry: 'Grain & food processing',       zhIndustry: '穀物與食品加工',     color: '#d4af37', rebellion: 'Mid',           zhNum: '九' },
+  { num: 10, enName: 'Livestock',   zhName: '畜牧',      industry: 'Livestock & animal husbandry',  zhIndustry: '畜牧業',             color: '#a3e635', rebellion: 'Low',           zhNum: '十' },
+  { num: 11, enName: 'Agriculture', zhName: '農業',      industry: 'Agriculture & farming',         zhIndustry: '農業與耕作',         color: '#86efac', rebellion: 'High',          zhNum: '十一' },
   { num: 12, enName: 'Coal Mining', zhName: '煤礦開採',  industry: 'Coal mining & energy',          zhIndustry: '煤礦與能源',         color: '#ff6b00', rebellion: 'HIGH — ORIGIN', zhNum: '十二' },
 ]
 
 const specialDistricts = [12, 11, 4, 13]
 
-// F: Panem SVG map – stylised hexagon grid representing the 12 districts
-function PanemMap({ selected, onSelect }: { selected: number | null; onSelect: (n: number | null) => void }) {
-  // 4-column grid layout positions (col, row) for districts 1-12
+// Opt-5: District 13 reveal modal
+function District13Modal({ onClose }: { onClose: () => void }) {
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[200] flex items-center justify-center px-4"
+        onClick={onClose}
+      >
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+
+        {/* Panel */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.88, y: 24 }}
+          animate={{ opacity: 1, scale: 1,    y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 16 }}
+          transition={{ type: 'spring', stiffness: 220, damping: 22 }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          className="relative max-w-md w-full border border-red-500/50 bg-ash-black rounded-sm p-8 z-10 overflow-hidden"
+        >
+          {/* Scanlines */}
+          <div className="absolute inset-0 pointer-events-none">
+            {Array.from({ length: 40 }).map((_, i) => (
+              <div key={i} className="absolute w-full h-px bg-white/[0.015]" style={{ top: `${i * 2.5}%` }} />
+            ))}
+          </div>
+
+          {/* Red alert flash */}
+          <motion.div
+            className="absolute inset-0 bg-red-600/10"
+            animate={{ opacity: [0.1, 0.25, 0.1] }}
+            transition={{ duration: 1.2, repeat: Infinity }}
+          />
+
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-6">
+            <span className="flex h-3 w-3 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+            </span>
+            <span className="font-cinzel text-xs text-red-400 tracking-[0.4em] uppercase">
+              Capitol Classified — 首都機密
+            </span>
+          </div>
+
+          <div className="font-cinzel text-4xl font-black text-red-400 mb-1">13</div>
+          <div className="font-cinzel text-lg text-red-300 mb-1 tracking-widest">DISTRICT THIRTEEN</div>
+          <div className="font-noto text-base text-red-200/70 mb-6">第十三區</div>
+
+          <div className="space-y-4 text-xs">
+            <div className="flex gap-3 border-b border-red-500/20 pb-3">
+              <span className="font-cinzel text-red-400/70 tracking-widest w-24 shrink-0">STATUS</span>
+              <span className="font-noto text-red-300">Presumed destroyed — 據稱已被摧毀</span>
+            </div>
+            <div className="flex gap-3 border-b border-red-500/20 pb-3">
+              <span className="font-cinzel text-red-400/70 tracking-widest w-24 shrink-0">INDUSTRY</span>
+              <span className="font-noto text-smoke">Nuclear weapons & graphite — 核武器與石墨</span>
+            </div>
+            <div className="flex gap-3 border-b border-red-500/20 pb-3">
+              <span className="font-cinzel text-red-400/70 tracking-widest w-24 shrink-0">REBELLION</span>
+              <span className="font-cinzel text-red-400 tracking-wider">COMMAND</span>
+            </div>
+            <div className="flex gap-3">
+              <span className="font-cinzel text-red-400/70 tracking-widest w-24 shrink-0">TRUTH</span>
+              <span className="font-noto text-smoke leading-relaxed">
+                District 13 never fell. It negotiated. Underground, it rebuilt its arsenal and waited — for the Mockingjay.
+                <br />
+                <span className="text-red-300/60 text-[10px] leading-relaxed block mt-1">第十三區從未被消滅。它選擇了談判，在地下重建武裝，等待著——反抗之鳥的到來。</span>
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="mt-8 w-full py-2 border border-red-500/40 text-red-400 font-cinzel text-xs tracking-widest hover:bg-red-500/10 transition-colors rounded-sm uppercase"
+          >
+            Close — 關閉
+          </button>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+// Opt-5: District 13 now clickable with reveal
+function PanemMap({ selected, onSelect, onReveal13 }: {
+  selected: number | null
+  onSelect: (n: number | null) => void
+  onReveal13: () => void
+}) {
   const positions: Record<number, [number, number]> = {
     1: [2, 0], 2: [3, 0], 3: [2, 1], 4: [3, 1],
     5: [1, 1], 6: [0, 1], 7: [1, 2], 8: [0, 2],
@@ -44,71 +134,56 @@ function PanemMap({ selected, onSelect }: { selected: number | null; onSelect: (
         const x = 10 + col * (W + GAP)
         const y = 10 + row * (H + GAP)
         const isSelected = selected === d.num
-        const isSpecial = specialDistricts.includes(d.num)
-        const fillColor = isSelected
-          ? d.color
-          : isSpecial
-          ? 'rgba(255,107,0,0.15)'
-          : 'rgba(60,60,60,0.7)'
+        const isSpecial  = specialDistricts.includes(d.num)
+        const fillColor  = isSelected ? d.color : isSpecial ? 'rgba(255,107,0,0.15)' : 'rgba(60,60,60,0.7)'
         const strokeColor = isSelected ? d.color : isSpecial ? '#ff6b00' : '#4a4a4a'
-        const strokeW = isSelected ? 2 : isSpecial ? 1.5 : 1
+        const strokeW     = isSelected ? 2 : isSpecial ? 1.5 : 1
 
         return (
-          <g
-            key={d.num}
-            onClick={() => onSelect(isSelected ? null : d.num)}
-            style={{ cursor: 'pointer' }}
-          >
-            <rect
-              x={x} y={y} width={W} height={H}
-              rx="4"
-              fill={fillColor}
-              stroke={strokeColor}
-              strokeWidth={strokeW}
-              style={{ transition: 'fill 0.2s, stroke 0.2s' }}
-            />
-            {/* District number */}
-            <text
-              x={x + W / 2} y={y + 14}
-              textAnchor="middle"
-              fontSize="9"
-              fontFamily="'Cinzel', serif"
-              fontWeight="700"
-              fill={isSelected ? '#1a0a00' : isSpecial ? '#ff9500' : '#888'}
-            >
+          <g key={d.num} onClick={() => onSelect(isSelected ? null : d.num)} style={{ cursor: 'pointer' }}>
+            <rect x={x} y={y} width={W} height={H} rx="4"
+              fill={fillColor} stroke={strokeColor} strokeWidth={strokeW}
+              style={{ transition: 'fill 0.2s, stroke 0.2s' }} />
+            <text x={x + W / 2} y={y + 14} textAnchor="middle" fontSize="9"
+              fontFamily="'Cinzel', serif" fontWeight="700"
+              fill={isSelected ? '#1a0a00' : isSpecial ? '#ff9500' : '#888'}>
               {d.num}
             </text>
-            {/* English name */}
-            <text
-              x={x + W / 2} y={y + 26}
-              textAnchor="middle"
-              fontSize="7.5"
-              fontFamily="'Cinzel', serif"
-              fill={isSelected ? '#1a0a00' : '#ccc'}
-            >
+            <text x={x + W / 2} y={y + 26} textAnchor="middle" fontSize="7.5"
+              fontFamily="'Cinzel', serif" fill={isSelected ? '#1a0a00' : '#ccc'}>
               {d.enName}
             </text>
-            {/* Chinese name */}
-            <text
-              x={x + W / 2} y={y + 38}
-              textAnchor="middle"
-              fontSize="7"
-              fontFamily="'Noto Sans TC', sans-serif"
-              fill={isSelected ? '#1a0a0088' : '#888'}
-            >
+            <text x={x + W / 2} y={y + 38} textAnchor="middle" fontSize="7"
+              fontFamily="'Noto Sans TC', sans-serif" fill={isSelected ? '#1a0a0088' : '#888'}>
               {d.zhName}
             </text>
           </g>
         )
       })}
-      {/* District 13 – secret */}
-      <g style={{ cursor: 'pointer' }}>
+
+      {/* Opt-5: District 13 — now clickable, shows pulsing red glow hint */}
+      <g
+        onClick={onReveal13}
+        style={{ cursor: 'pointer' }}
+        role="button"
+        aria-label="Reveal District 13"
+      >
+        {/* Pulse ring */}
+        <rect
+          x={10 + 3*(W+GAP) - 3} y={10 + 2*(H+GAP) - 3} width={W + 6} height={H + 6} rx="7"
+          fill="none" stroke="rgba(239,68,68,0.25)" strokeWidth="1.5"
+        >
+          <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite" />
+          <animate attributeName="stroke-width" values="1;2.5;1" dur="2s" repeatCount="indefinite" />
+        </rect>
         <rect x={10 + 3*(W+GAP)} y={10 + 2*(H+GAP)} width={W} height={H} rx="4"
-          fill="rgba(255,0,0,0.08)" stroke="rgba(255,60,60,0.4)" strokeWidth="1" strokeDasharray="3 2" />
+          fill="rgba(255,0,0,0.10)" stroke="rgba(255,60,60,0.5)" strokeWidth="1.2" strokeDasharray="3 2">
+          <animate attributeName="stroke-opacity" values="0.4;0.9;0.4" dur="1.8s" repeatCount="indefinite" />
+        </rect>
         <text x={10 + 3*(W+GAP) + W/2} y={10 + 2*(H+GAP)+14} textAnchor="middle"
           fontSize="9" fontFamily="'Cinzel', serif" fontWeight="700" fill="#ef4444">13</text>
         <text x={10 + 3*(W+GAP) + W/2} y={10 + 2*(H+GAP)+26} textAnchor="middle"
-          fontSize="7" fontFamily="'Cinzel', serif" fill="#ef4444">CLASSIFIED</text>
+          fontSize="6.5" fontFamily="'Cinzel', serif" fill="#ef4444">CLASSIFIED</text>
         <text x={10 + 3*(W+GAP) + W/2} y={10 + 2*(H+GAP)+38} textAnchor="middle"
           fontSize="7" fontFamily="'Cinzel', serif" fill="#ef4444">機密</text>
       </g>
@@ -119,7 +194,8 @@ function PanemMap({ selected, onSelect }: { selected: number | null; onSelect: (
 export default function DistrictsSection() {
   const titleRef = useRef(null)
   const isTitleInView = useInView(titleRef, { once: true })
-  const [selected, setSelected] = useState<number | null>(null)
+  const [selected,     setSelected]     = useState<number | null>(null)
+  const [show13Modal,  setShow13Modal]  = useState(false)
   const selectedData = districts.find((d) => d.num === selected)
 
   return (
@@ -156,7 +232,7 @@ export default function DistrictsSection() {
           />
         </motion.div>
 
-        {/* F: Interactive Panem map + detail panel */}
+        {/* Map + detail panel */}
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
           {/* Map */}
           <motion.div
@@ -170,7 +246,11 @@ export default function DistrictsSection() {
               — Click a district to reveal —<br />
               <span className="font-noto normal-case text-ash-gray/60">點擊區域查看詳情</span>
             </p>
-            <PanemMap selected={selected} onSelect={setSelected} />
+            <PanemMap selected={selected} onSelect={setSelected} onReveal13={() => setShow13Modal(true)} />
+            {/* Opt-5: hint for District 13 */}
+            <p className="font-cinzel text-[10px] tracking-widest text-red-500/50 text-center mt-3 animate-pulse">
+              ▲ DISTRICT 13 — CLICK TO UNCLASSIFY
+            </p>
           </motion.div>
 
           {/* Detail panel */}
@@ -189,7 +269,6 @@ export default function DistrictsSection() {
                 transition={{ duration: 0.35 }}
                 className="border border-flame-orange/30 bg-charcoal/80 rounded-sm p-6 relative"
               >
-                {/* Accent line */}
                 <div
                   className="absolute top-0 left-0 right-0 h-0.5 rounded-t-sm"
                   style={{ background: selectedData.color }}
@@ -217,10 +296,7 @@ export default function DistrictsSection() {
                   </div>
                   <div className="flex gap-2">
                     <span className="font-cinzel text-ash-gray tracking-widest w-20 shrink-0">REBELLION</span>
-                    <span
-                      className="font-cinzel tracking-wider"
-                      style={{ color: selectedData.color }}
-                    >
+                    <span className="font-cinzel tracking-wider" style={{ color: selectedData.color }}>
                       {selectedData.rebellion}
                     </span>
                   </div>
@@ -240,24 +316,10 @@ export default function DistrictsSection() {
             )}
           </motion.div>
         </div>
-
-        {/* District 13 footnote */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          viewport={{ once: true }}
-          className="mt-10 text-center"
-        >
-          <div className="inline-flex items-center gap-3 px-6 py-3 border border-flame-orange/20 rounded-sm bg-ember/20">
-            <span className="text-flame-orange text-lg">⚠</span>
-            <div>
-              <span className="font-cinzel text-xs text-flame-orange tracking-widest">DISTRICT 13 — CLASSIFIED</span>
-              <span className="font-noto text-xs text-smoke ml-3">第十三區 — 機密</span>
-            </div>
-          </div>
-        </motion.div>
       </div>
+
+      {/* Opt-5: District 13 reveal modal */}
+      {show13Modal && <District13Modal onClose={() => setShow13Modal(false)} />}
     </section>
   )
 }

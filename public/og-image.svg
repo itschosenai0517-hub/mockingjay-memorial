@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <radialGradient id="bg-grad" cx="50%" cy="50%" r="70%">
+      <stop offset="0%"   stop-color="#1c0a00"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </radialGradient>
+    <radialGradient id="bird-body" cx="50%" cy="38%" r="55%">
+      <stop offset="0%"   stop-color="#ffb347"/>
+      <stop offset="50%"  stop-color="#ff6b00"/>
+      <stop offset="100%" stop-color="#cc2200"/>
+    </radialGradient>
+    <filter id="glow-sm">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="text-glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg-grad)"/>
+
+  <!-- Scanlines overlay -->
+  <rect width="1200" height="630" fill="none" stroke="white" stroke-width="0"
+        style="background: repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 4px)"/>
+  <!-- Scanline simulation with thin rects -->
+  <g opacity="0.04">
+    <rect y="0"   width="1200" height="1" fill="white"/>
+    <rect y="6"   width="1200" height="1" fill="white"/>
+    <rect y="12"  width="1200" height="1" fill="white"/>
+    <rect y="18"  width="1200" height="1" fill="white"/>
+    <rect y="24"  width="1200" height="1" fill="white"/>
+    <rect y="30"  width="1200" height="1" fill="white"/>
+    <rect y="36"  width="1200" height="1" fill="white"/>
+    <rect y="42"  width="1200" height="1" fill="white"/>
+    <rect y="48"  width="1200" height="1" fill="white"/>
+    <rect y="54"  width="1200" height="1" fill="white"/>
+    <rect y="60"  width="1200" height="1" fill="white"/>
+    <rect y="66"  width="1200" height="1" fill="white"/>
+    <rect y="72"  width="1200" height="1" fill="white"/>
+    <rect y="78"  width="1200" height="1" fill="white"/>
+    <rect y="84"  width="1200" height="1" fill="white"/>
+    <rect y="90"  width="1200" height="1" fill="white"/>
+    <rect y="96"  width="1200" height="1" fill="white"/>
+    <rect y="102" width="1200" height="1" fill="white"/>
+    <rect y="108" width="1200" height="1" fill="white"/>
+    <rect y="114" width="1200" height="1" fill="white"/>
+  </g>
+
+  <!-- Flame glow center -->
+  <ellipse cx="600" cy="315" rx="320" ry="220" fill="#ff6b00" opacity="0.06"/>
+  <ellipse cx="600" cy="315" rx="180" ry="130" fill="#ff6b00" opacity="0.08"/>
+
+  <!-- Large Mockingjay — centered -->
+  <g transform="translate(480, 80) scale(5)">
+    <!-- Left wing -->
+    <path d="M24 29 Q14 20 2 15 Q9 25 10 31 Q17 27 24 29Z" fill="url(#bird-body)" filter="url(#glow-sm)"/>
+    <!-- Right wing -->
+    <path d="M24 29 Q34 20 46 15 Q39 25 38 31 Q31 27 24 29Z" fill="url(#bird-body)" filter="url(#glow-sm)"/>
+    <!-- Body -->
+    <ellipse cx="24" cy="36" rx="4.5" ry="6.5" fill="url(#bird-body)"/>
+    <!-- Head -->
+    <circle  cx="24" cy="23" r="5.2" fill="url(#bird-body)"/>
+    <!-- Crest -->
+    <path d="M22 19 Q21 14 24 16 Q23 13 25 15 Q24 12 27 15" stroke="#ff9500" stroke-width="0.7" fill="none" stroke-linecap="round"/>
+    <!-- Beak -->
+    <path d="M28 22 L35 24.5 L28 27Z" fill="#d4af37"/>
+    <!-- Eye -->
+    <circle cx="28" cy="22" r="1.4" fill="#1a0600"/>
+    <circle cx="28.5" cy="21.5" r="0.45" fill="#fff"/>
+    <!-- Tail -->
+    <path d="M24 42 Q20 49 18 56 Q22 50 24 46 Q26 50 30 56 Q28 49 24 42Z" fill="url(#bird-body)" opacity="0.9"/>
+    <!-- Arrow -->
+    <line x1="13" y1="46" x2="35" y2="46" stroke="#d4af37" stroke-width="1.2"/>
+    <path d="M32.5 43.5 L36 46 L32.5 48.5Z" fill="#d4af37"/>
+    <path d="M15.5 43.5 L12 46 L15.5 48.5Z" fill="#d4af37"/>
+  </g>
+
+  <!-- Border frame -->
+  <rect x="24" y="24" width="1152" height="582" fill="none" stroke="#ff6b00" stroke-width="1" stroke-opacity="0.3"/>
+  <rect x="32" y="32" width="1136" height="566" fill="none" stroke="#d4af37" stroke-width="0.5" stroke-opacity="0.2"/>
+
+  <!-- Corner accents -->
+  <path d="M24,24 L60,24 M24,24 L24,60"   stroke="#ff6b00" stroke-width="2" stroke-opacity="0.7" fill="none"/>
+  <path d="M1176,24 L1140,24 M1176,24 L1176,60"   stroke="#ff6b00" stroke-width="2" stroke-opacity="0.7" fill="none"/>
+  <path d="M24,606 L60,606 M24,606 L24,570"  stroke="#ff6b00" stroke-width="2" stroke-opacity="0.7" fill="none"/>
+  <path d="M1176,606 L1140,606 M1176,606 L1176,570" stroke="#ff6b00" stroke-width="2" stroke-opacity="0.7" fill="none"/>
+
+  <!-- Main title -->
+  <text x="600" y="498" text-anchor="middle"
+    font-family="'Cinzel', Georgia, serif" font-weight="900" font-size="74"
+    fill="#ff6b00" filter="url(#text-glow)" opacity="0.95">
+    MOCKINGJAY
+  </text>
+  <text x="600" y="548" text-anchor="middle"
+    font-family="Georgia, serif" font-size="30"
+    fill="#d4af37" opacity="0.75">
+    反抗之鳥永不熄滅
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="595" text-anchor="middle"
+    font-family="Georgia, serif" font-style="italic" font-size="20"
+    fill="#888888" opacity="0.7">
+    If we burn, you burn with us.
+  </text>
+
+  <!-- Divider line -->
+  <line x1="340" y1="470" x2="860" y2="470" stroke="#ff6b00" stroke-width="1" stroke-opacity="0.4"/>
+  <circle cx="600" cy="470" r="3" fill="#d4af37" opacity="0.7"/>
+</svg>

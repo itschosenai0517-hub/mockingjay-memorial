@@ -12,6 +12,10 @@ interface Particle {
   rotationSpeed: number
   opacity: number
   type: 'ash' | 'ember'
+  // Pre-cached ash color components to avoid per-frame Math.random()
+  ashR: number
+  ashG: number
+  ashB: number
 }
 
 // D: Respect prefers-reduced-motion + cap particle count on low-perf devices
@@ -58,6 +62,10 @@ export default function AshCanvas() {
       rotationSpeed: (Math.random() - 0.5) * 0.05,
       opacity: Math.random() * 0.6 + 0.1,
       type: Math.random() > 0.85 ? 'ember' : 'ash',
+      // Pre-cache ash color so draw() never calls Math.random()
+      ashR: 120 + Math.floor(Math.random() * 40),
+      ashG: 110 + Math.floor(Math.random() * 30),
+      ashB: 100 + Math.floor(Math.random() * 20),
     })
 
     // Seed initial particles
@@ -70,6 +78,8 @@ export default function AshCanvas() {
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      const now = Date.now()
 
       particles.forEach((p, i) => {
         ctx.save()
@@ -87,7 +97,8 @@ export default function AshCanvas() {
           ctx.arc(0, 0, p.size * 2, 0, Math.PI * 2)
           ctx.fill()
         } else {
-          ctx.fillStyle = `rgba(${120 + Math.random() * 40}, ${110 + Math.random() * 30}, ${100 + Math.random() * 20}, ${p.opacity})`
+          // Use pre-cached color — no Math.random() here
+          ctx.fillStyle = `rgba(${p.ashR}, ${p.ashG}, ${p.ashB}, ${p.opacity})`
           ctx.beginPath()
           ctx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2)
           ctx.fill()
@@ -96,7 +107,7 @@ export default function AshCanvas() {
         ctx.restore()
 
         p.y += p.speedY
-        p.x += p.speedX + Math.sin(Date.now() / 2000 + i) * 0.3
+        p.x += p.speedX + Math.sin(now / 2000 + i) * 0.3
         p.rotation += p.rotationSpeed
         p.opacity -= 0.0008
 

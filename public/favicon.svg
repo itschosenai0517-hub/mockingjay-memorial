@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="body" cx="50%" cy="40%" r="55%">
+      <stop offset="0%"   stop-color="#ffb347"/>
+      <stop offset="55%"  stop-color="#ff6b00"/>
+      <stop offset="100%" stop-color="#cc2200"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#0a0a0a" stroke="#ff6b00" stroke-width="1.5" stroke-opacity="0.5"/>
+  <!-- Left wing -->
+  <path d="M32 29 Q22 19 8 14 Q15 24 15 31 Q23 27 32 29Z" fill="url(#body)" filter="url(#glow)"/>
+  <!-- Right wing -->
+  <path d="M32 29 Q42 19 56 14 Q49 24 49 31 Q41 27 32 29Z" fill="url(#body)" filter="url(#glow)"/>
+  <!-- Body -->
+  <ellipse cx="32" cy="36" rx="5" ry="7" fill="url(#body)"/>
+  <!-- Head -->
+  <circle cx="32" cy="25" r="5.5" fill="url(#body)"/>
+  <!-- Beak -->
+  <path d="M36 24 L44 26.5 L36 29Z" fill="#d4af37"/>
+  <!-- Eye -->
+  <circle cx="36" cy="24.5" r="1.5" fill="#1a0600"/>
+  <circle cx="36.5" cy="24" r="0.5" fill="#fff"/>
+  <!-- Tail -->
+  <path d="M32 43 Q28 50 25 58 Q29 51 32 47 Q35 51 39 58 Q36 50 32 43Z" fill="url(#body)" opacity="0.9"/>
+  <!-- Arrow -->
+  <line x1="18" y1="46" x2="46" y2="46" stroke="#d4af37" stroke-width="1.5"/>
+  <path d="M43 43 L47 46 L43 49Z" fill="#d4af37"/>
+  <path d="M21 43 L17 46 L21 49Z" fill="#d4af37"/>
+</svg>

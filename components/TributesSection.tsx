@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 
 const tributes = [
   {
@@ -11,7 +11,6 @@ const tributes = [
     role: 'The Mockingjay / 反抗之鳥',
     tribute: 'The girl on fire who became a symbol, a spark, and a revolution.',
     tributeZh: '那個燃燒的女孩，成為了一個象徵、一道火花，以及一場革命。',
-    // E: quote audio line (spoken via Web Speech API)
     voiceLine: 'If we burn, you burn with us.',
     status: 'ALIVE',
     statusZh: '存活',
@@ -72,39 +71,23 @@ const tributes = [
   },
 ]
 
-function useTypewriter(text: string, speed = 35, startDelay = 0) {
+// Single shared typewriter queue — avoids multiple simultaneous setIntervals
+function useTypewriter(text: string, speed = 35, active = false) {
   const [displayed, setDisplayed] = useState('')
-  const [started, setStarted] = useState(false)
 
   useEffect(() => {
-    const delayTimer = setTimeout(() => setStarted(true), startDelay)
-    return () => clearTimeout(delayTimer)
-  }, [startDelay])
-
-  useEffect(() => {
-    if (!started) return
+    if (!active) return
     let i = 0
     setDisplayed('')
-    const interval = setInterval(() => {
+    const iv = setInterval(() => {
       i++
       setDisplayed(text.slice(0, i))
-      if (i >= text.length) clearInterval(interval)
+      if (i >= text.length) clearInterval(iv)
     }, speed)
-    return () => clearInterval(interval)
-  }, [text, speed, started])
+    return () => clearInterval(iv)
+  }, [active, text, speed])
 
   return displayed
-}
-
-// E: Play quote via Web Speech API
-function speakLine(text: string) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
-  window.speechSynthesis.cancel()
-  const utt = new SpeechSynthesisUtterance(text)
-  utt.lang = 'en-US'
-  utt.rate = 0.88
-  utt.pitch = 0.95
-  window.speechSynthesis.speak(utt)
 }
 
 function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: number }) {
@@ -112,38 +95,47 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
   const isInView = useInView(ref, { once: true, margin: '-60px' })
   const [unlocked, setUnlocked] = useState(false)
   const [speaking, setSpeaking] = useState(false)
-  const unlockText = useTypewriter(
-    unlocked ? `FILE UNLOCKED — 檔案已解鎖 — ${tribute.id}` : '',
-    40,
-    0
-  )
 
+  // Only start typewriter when in view + staggered delay
+  const [twActive, setTwActive] = useState(false)
   useEffect(() => {
-    if (isInView) {
-      const t = setTimeout(() => setUnlocked(true), index * 150 + 400)
-      return () => clearTimeout(t)
-    }
+    if (!isInView) return
+    const t = setTimeout(() => {
+      setUnlocked(true)
+      setTwActive(true)
+    }, index * 150 + 400)
+    return () => clearTimeout(t)
   }, [isInView, index])
 
-  // E: speak handler
-  const handleSpeak = () => {
+  const unlockLabel = `FILE UNLOCKED — 檔案已解鎖 — ${tribute.id}`
+  const unlockText = useTypewriter(unlockLabel, 40, twActive)
+
+  // E: speak handler with voice selection (prefer female English voice)
+  const handleSpeak = useCallback(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
     if (speaking) {
-      window.speechSynthesis?.cancel()
+      window.speechSynthesis.cancel()
       setSpeaking(false)
       return
     }
     setSpeaking(true)
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-      const utt = new SpeechSynthesisUtterance(tribute.voiceLine)
-      utt.lang = 'en-US'
-      utt.rate = 0.88
-      utt.pitch = 0.95
-      utt.onend = () => setSpeaking(false)
-      utt.onerror = () => setSpeaking(false)
-      window.speechSynthesis.speak(utt)
-    }
-  }
+    window.speechSynthesis.cancel()
+    const utt = new SpeechSynthesisUtterance(tribute.voiceLine)
+    utt.lang = 'en-US'
+    utt.rate = 0.88
+    utt.pitch = 0.95
+
+    // Try to pick a female English voice for more character
+    const voices = window.speechSynthesis.getVoices()
+    const preferred = voices.find(
+      (v) => v.lang.startsWith('en') && /female|woman|samantha|victoria|karen/i.test(v.name)
+    )
+    if (preferred) utt.voice = preferred
+
+    utt.onend = () => setSpeaking(false)
+    utt.onerror = () => setSpeaking(false)
+    window.speechSynthesis.speak(utt)
+  }, [speaking, tribute.voiceLine])
 
   const isKIA = tribute.status === 'KIA'
   const threatColors: Record<string, string> = {
@@ -184,7 +176,7 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
       <div className="px-4 py-2 border-b border-flame-orange/10 min-h-[28px]">
         <span className={`font-cinzel text-xs tracking-widest ${unlocked ? 'text-flame-orange' : 'text-ash-gray'}`}>
           {unlockText}
-          {unlocked && unlockText.length < `FILE UNLOCKED — 檔案已解鎖 — ${tribute.id}`.length && (
+          {twActive && unlockText.length < unlockLabel.length && (
             <span className="animate-pulse">█</span>
           )}
         </span>
@@ -247,7 +239,6 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
               : 'border-ash-gray/30 text-ash-gray hover:border-flame-orange/50 hover:text-flame-orange hover:bg-flame-orange/5'
           }`}
         >
-          {/* Speaker icon */}
           <svg viewBox="0 0 16 16" className="w-3.5 h-3.5 fill-current">
             {speaking ? (
               <>

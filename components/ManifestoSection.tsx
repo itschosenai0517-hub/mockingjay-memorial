@@ -4,7 +4,7 @@ import { motion, useInView } from 'framer-motion'
 import { useRef, useState, useEffect } from 'react'
 
 // G: Typewriter hook for manifesto text
-function useTypewriter(text: string, speed = 28, trigger = false) {
+function useTypewriter(text: string, speed = 18, trigger = false) {
   const [displayed, setDisplayed] = useState('')
   const [done, setDone] = useState(false)
 
@@ -32,14 +32,16 @@ export default function ManifestoSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
 
-  // G: stagger paragraph reveals
   const [p1Started, setP1Started] = useState(false)
   const [p2Started, setP2Started] = useState(false)
   const [p3Started, setP3Started] = useState(false)
+  const [skipped, setSkipped] = useState(false)
 
-  const p1 = useTypewriter(PARAGRAPH_1, 26, p1Started)
-  const p2 = useTypewriter(PARAGRAPH_2, 26, p2Started)
-  const p3 = useTypewriter(PARAGRAPH_3, 30, p3Started)
+  const p1 = useTypewriter(PARAGRAPH_1, 18, p1Started)
+  const p2 = useTypewriter(PARAGRAPH_2, 18, p2Started)
+  const p3 = useTypewriter(PARAGRAPH_3, 20, p3Started)
+
+  const allDone = p3.done || skipped
 
   useEffect(() => {
     if (!isInView) return
@@ -60,6 +62,14 @@ export default function ManifestoSection() {
       return () => clearTimeout(t)
     }
   }, [p2.done])
+
+  // Skip: instantly show all text
+  const handleSkip = () => {
+    setSkipped(true)
+    setP1Started(true)
+    setP2Started(true)
+    setP3Started(true)
+  }
 
   return (
     <section id="manifesto" className="relative py-24 px-6 z-20">
@@ -146,24 +156,24 @@ export default function ManifestoSection() {
 
             {/* Paragraph 1 */}
             <div className="font-caveat text-xl md:text-2xl text-parchment/90 leading-relaxed min-h-[4rem]">
-              {p1.displayed}
-              {p1Started && !p1.done && (
+              {skipped ? PARAGRAPH_1 : p1.displayed}
+              {p1Started && !p1.done && !skipped && (
                 <span className="inline-block w-0.5 h-5 bg-flame-orange align-middle ml-0.5 animate-pulse" />
               )}
             </div>
 
             {/* Paragraph 2 */}
-            {p1.done && (
+            {(p1.done || skipped) && (
               <div className="font-caveat text-lg text-parchment/70 leading-relaxed min-h-[3.5rem]">
-                {p2.displayed}
-                {p2Started && !p2.done && (
+                {skipped ? PARAGRAPH_2 : p2.displayed}
+                {p2Started && !p2.done && !skipped && (
                   <span className="inline-block w-0.5 h-5 bg-flame-orange align-middle ml-0.5 animate-pulse" />
                 )}
               </div>
             )}
 
             {/* Chinese translation – fades in after p2 */}
-            {p2.done && (
+            {(p2.done || skipped) && (
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -181,16 +191,16 @@ export default function ManifestoSection() {
             </div>
 
             {/* Paragraph 3 */}
-            {p2.done && (
+            {(p2.done || skipped) && (
               <div className="font-caveat text-xl text-flame-orange/80 leading-relaxed min-h-[2rem]">
-                {p3.displayed}
-                {p3Started && !p3.done && (
+                {skipped ? PARAGRAPH_3 : p3.displayed}
+                {p3Started && !p3.done && !skipped && (
                   <span className="inline-block w-0.5 h-5 bg-flame-orange align-middle ml-0.5 animate-pulse" />
                 )}
               </div>
             )}
 
-            {p3.done && (
+            {(p3.done || skipped) && (
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -205,7 +215,7 @@ export default function ManifestoSection() {
           {/* Signature */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={p3.done ? { opacity: 1 } : {}}
+            animate={allDone ? { opacity: 1 } : {}}
             transition={{ delay: 0.5, duration: 0.8 }}
             className="mt-10 flex items-end justify-between"
           >
@@ -224,6 +234,19 @@ export default function ManifestoSection() {
               <div className="font-cinzel text-xs text-flame-orange/50 tracking-widest">MOCKINGJAY</div>
             </div>
           </motion.div>
+
+          {/* Skip button — only visible while typing */}
+          {!allDone && p1Started && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.5 }}
+              onClick={handleSkip}
+              className="absolute top-4 right-4 font-cinzel text-[10px] tracking-widest text-ash-gray/50 hover:text-flame-orange/80 transition-colors uppercase border border-ash-gray/20 hover:border-flame-orange/30 px-2 py-1 rounded-sm"
+            >
+              Skip ›
+            </motion.button>
+          )}
         </motion.div>
       </div>
     </section>
