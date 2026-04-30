@@ -12,17 +12,19 @@ interface Particle {
   rotationSpeed: number
   opacity: number
   type: 'ash' | 'ember'
-  // Pre-cached ash color components to avoid per-frame Math.random()
   ashR: number
   ashG: number
   ashB: number
 }
 
-// D: Respect prefers-reduced-motion + cap particle count on low-perf devices
 const MAX_PARTICLES_NORMAL = 80
-const MAX_PARTICLES_LOW = 30
+const MAX_PARTICLES_LOW    = 30
+// 手機（窄螢幕）額外降低粒子數，避免影響捲動效能
+const MAX_PARTICLES_MOBILE = 20
+
 const SPAWN_RATE_NORMAL = 0.12
-const SPAWN_RATE_LOW = 0.05
+const SPAWN_RATE_LOW    = 0.05
+const SPAWN_RATE_MOBILE = 0.04
 
 export default function AshCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -33,20 +35,21 @@ export default function AshCanvas() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // D: Check prefers-reduced-motion
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReduced) return  // Skip particle animation entirely
+    if (prefersReduced) return
 
     let animationId: number
     let particles: Particle[] = []
 
-    // D: Rough performance budget – use navigator.hardwareConcurrency as proxy
-    const isLowPerf = typeof navigator !== 'undefined' && navigator.hardwareConcurrency <= 2
-    const maxParticles = isLowPerf ? MAX_PARTICLES_LOW : MAX_PARTICLES_NORMAL
-    const spawnRate = isLowPerf ? SPAWN_RATE_LOW : SPAWN_RATE_NORMAL
+    // 手機偵測：寬度 ≤ 768px 視為手機
+    const isMobile = window.innerWidth <= 768
+    const isLowPerf = !isMobile && typeof navigator !== 'undefined' && navigator.hardwareConcurrency <= 2
+
+    const maxParticles = isMobile ? MAX_PARTICLES_MOBILE : isLowPerf ? MAX_PARTICLES_LOW : MAX_PARTICLES_NORMAL
+    const spawnRate    = isMobile ? SPAWN_RATE_MOBILE    : isLowPerf ? SPAWN_RATE_LOW    : SPAWN_RATE_NORMAL
 
     const resize = () => {
-      canvas.width = window.innerWidth
+      canvas.width  = window.innerWidth
       canvas.height = window.innerHeight
     }
     resize()
@@ -62,14 +65,12 @@ export default function AshCanvas() {
       rotationSpeed: (Math.random() - 0.5) * 0.05,
       opacity: Math.random() * 0.6 + 0.1,
       type: Math.random() > 0.85 ? 'ember' : 'ash',
-      // Pre-cache ash color so draw() never calls Math.random()
       ashR: 120 + Math.floor(Math.random() * 40),
       ashG: 110 + Math.floor(Math.random() * 30),
       ashB: 100 + Math.floor(Math.random() * 20),
     })
 
-    // Seed initial particles
-    const seedCount = Math.min(40, maxParticles)
+    const seedCount = Math.min(isMobile ? 10 : 40, maxParticles)
     for (let i = 0; i < seedCount; i++) {
       const p = createParticle()
       p.y = Math.random() * canvas.height
@@ -97,7 +98,6 @@ export default function AshCanvas() {
           ctx.arc(0, 0, p.size * 2, 0, Math.PI * 2)
           ctx.fill()
         } else {
-          // Use pre-cached color — no Math.random() here
           ctx.fillStyle = `rgba(${p.ashR}, ${p.ashG}, ${p.ashB}, ${p.opacity})`
           ctx.beginPath()
           ctx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2)
@@ -116,7 +116,6 @@ export default function AshCanvas() {
         }
       })
 
-      // D: Controlled spawn with hard cap
       if (Math.random() < spawnRate && particles.length < maxParticles) {
         particles.push(createParticle())
       } else if (particles.length > maxParticles) {

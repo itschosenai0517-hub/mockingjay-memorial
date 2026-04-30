@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 
 const districts = [
   { num: 1,  enName: 'Luxury',      zhName: '奢侈品',    industry: 'Luxury goods for the Capitol', zhIndustry: '為首都製造奢侈品',   color: '#a78bfa', rebellion: 'Low',           zhNum: '一' },
@@ -20,8 +20,17 @@ const districts = [
 
 const specialDistricts = [12, 11, 4, 13]
 
-// Opt-5: District 13 reveal modal
+// District 13 reveal modal — with ESC key support
 function District13Modal({ onClose }: { onClose: () => void }) {
+  // ESC 鍵關閉
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
   return (
     <AnimatePresence>
       <motion.div
@@ -56,6 +65,15 @@ function District13Modal({ onClose }: { onClose: () => void }) {
             animate={{ opacity: [0.1, 0.25, 0.1] }}
             transition={{ duration: 1.2, repeat: Infinity }}
           />
+
+          {/* X 關閉按鈕 */}
+          <button
+            onClick={onClose}
+            aria-label="Close District 13 modal"
+            className="absolute top-4 right-4 z-20 w-7 h-7 flex items-center justify-center border border-red-500/30 text-red-400/60 hover:text-red-400 hover:border-red-400/60 hover:bg-red-500/10 transition-all duration-200 rounded-sm font-cinzel text-xs"
+          >
+            ✕
+          </button>
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
@@ -107,7 +125,6 @@ function District13Modal({ onClose }: { onClose: () => void }) {
   )
 }
 
-// Opt-5: District 13 now clickable with reveal
 function PanemMap({ selected, onSelect, onReveal13 }: {
   selected: number | null
   onSelect: (n: number | null) => void
@@ -118,21 +135,25 @@ function PanemMap({ selected, onSelect, onReveal13 }: {
     5: [1, 1], 6: [0, 1], 7: [1, 2], 8: [0, 2],
     9: [1, 3], 10:[0, 3], 11:[2, 3], 12:[3, 3],
   }
-  const W = 56, H = 46, GAP = 4
+  // 放大：W/H 從 56x46 → 72x58，GAP 從 4 → 6
+  const W = 72, H = 58, GAP = 6
   const cols = 4, rows = 4
-  const svgW = cols * (W + GAP) - GAP + 20
-  const svgH = rows * (H + GAP) - GAP + 20
+  const svgW = cols * (W + GAP) - GAP + 24
+  const svgH = rows * (H + GAP) - GAP + 24
 
   return (
     <svg
       viewBox={`0 0 ${svgW} ${svgH}`}
-      className="w-full max-w-sm mx-auto"
-      style={{ filter: 'drop-shadow(0 0 12px rgba(255,107,0,0.15))' }}
+      // max-w-sm → max-w-lg（512px）
+      className="w-full max-w-lg mx-auto"
+      style={{ filter: 'drop-shadow(0 0 16px rgba(255,107,0,0.18))' }}
+      role="group"
+      aria-label="Map of Panem Districts"
     >
       {districts.map((d) => {
         const [col, row] = positions[d.num]
-        const x = 10 + col * (W + GAP)
-        const y = 10 + row * (H + GAP)
+        const x = 12 + col * (W + GAP)
+        const y = 12 + row * (H + GAP)
         const isSelected = selected === d.num
         const isSpecial  = specialDistricts.includes(d.num)
         const fillColor  = isSelected ? d.color : isSpecial ? 'rgba(255,107,0,0.15)' : 'rgba(60,60,60,0.7)'
@@ -140,20 +161,30 @@ function PanemMap({ selected, onSelect, onReveal13 }: {
         const strokeW     = isSelected ? 2 : isSpecial ? 1.5 : 1
 
         return (
-          <g key={d.num} onClick={() => onSelect(isSelected ? null : d.num)} style={{ cursor: 'pointer' }}>
+          <g
+            key={d.num}
+            onClick={() => onSelect(isSelected ? null : d.num)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(isSelected ? null : d.num) }}
+            tabIndex={0}
+            role="button"
+            aria-label={`District ${d.num} ${d.enName}`}
+            aria-pressed={isSelected}
+            style={{ cursor: 'pointer', outline: 'none' }}
+          >
             <rect x={x} y={y} width={W} height={H} rx="4"
               fill={fillColor} stroke={strokeColor} strokeWidth={strokeW}
               style={{ transition: 'fill 0.2s, stroke 0.2s' }} />
-            <text x={x + W / 2} y={y + 14} textAnchor="middle" fontSize="9"
+            {/* 字體大小同步放大：9→11, 7.5→9, 7→8.5 */}
+            <text x={x + W / 2} y={y + 17} textAnchor="middle" fontSize="11"
               fontFamily="'Cinzel', serif" fontWeight="700"
               fill={isSelected ? '#1a0a00' : isSpecial ? '#ff9500' : '#888'}>
               {d.num}
             </text>
-            <text x={x + W / 2} y={y + 26} textAnchor="middle" fontSize="7.5"
+            <text x={x + W / 2} y={y + 33} textAnchor="middle" fontSize="9"
               fontFamily="'Cinzel', serif" fill={isSelected ? '#1a0a00' : '#ccc'}>
               {d.enName}
             </text>
-            <text x={x + W / 2} y={y + 38} textAnchor="middle" fontSize="7"
+            <text x={x + W / 2} y={y + 48} textAnchor="middle" fontSize="8.5"
               fontFamily="'Noto Sans TC', sans-serif" fill={isSelected ? '#1a0a0088' : '#888'}>
               {d.zhName}
             </text>
@@ -161,31 +192,33 @@ function PanemMap({ selected, onSelect, onReveal13 }: {
         )
       })}
 
-      {/* Opt-5: District 13 — now clickable, shows pulsing red glow hint */}
+      {/* District 13 — clickable, keyboard accessible */}
       <g
         onClick={onReveal13}
-        style={{ cursor: 'pointer' }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onReveal13() }}
+        tabIndex={0}
+        style={{ cursor: 'pointer', outline: 'none' }}
         role="button"
-        aria-label="Reveal District 13"
+        aria-label="Reveal District 13 — Classified"
       >
         {/* Pulse ring */}
         <rect
-          x={10 + 3*(W+GAP) - 3} y={10 + 2*(H+GAP) - 3} width={W + 6} height={H + 6} rx="7"
+          x={12 + 3*(W+GAP) - 3} y={12 + 2*(H+GAP) - 3} width={W + 6} height={H + 6} rx="7"
           fill="none" stroke="rgba(239,68,68,0.25)" strokeWidth="1.5"
         >
           <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite" />
           <animate attributeName="stroke-width" values="1;2.5;1" dur="2s" repeatCount="indefinite" />
         </rect>
-        <rect x={10 + 3*(W+GAP)} y={10 + 2*(H+GAP)} width={W} height={H} rx="4"
+        <rect x={12 + 3*(W+GAP)} y={12 + 2*(H+GAP)} width={W} height={H} rx="4"
           fill="rgba(255,0,0,0.10)" stroke="rgba(255,60,60,0.5)" strokeWidth="1.2" strokeDasharray="3 2">
           <animate attributeName="stroke-opacity" values="0.4;0.9;0.4" dur="1.8s" repeatCount="indefinite" />
         </rect>
-        <text x={10 + 3*(W+GAP) + W/2} y={10 + 2*(H+GAP)+14} textAnchor="middle"
-          fontSize="9" fontFamily="'Cinzel', serif" fontWeight="700" fill="#ef4444">13</text>
-        <text x={10 + 3*(W+GAP) + W/2} y={10 + 2*(H+GAP)+26} textAnchor="middle"
-          fontSize="6.5" fontFamily="'Cinzel', serif" fill="#ef4444">CLASSIFIED</text>
-        <text x={10 + 3*(W+GAP) + W/2} y={10 + 2*(H+GAP)+38} textAnchor="middle"
-          fontSize="7" fontFamily="'Cinzel', serif" fill="#ef4444">機密</text>
+        <text x={12 + 3*(W+GAP) + W/2} y={12 + 2*(H+GAP)+17} textAnchor="middle"
+          fontSize="11" fontFamily="'Cinzel', serif" fontWeight="700" fill="#ef4444">13</text>
+        <text x={12 + 3*(W+GAP) + W/2} y={12 + 2*(H+GAP)+33} textAnchor="middle"
+          fontSize="8" fontFamily="'Cinzel', serif" fill="#ef4444">CLASSIFIED</text>
+        <text x={12 + 3*(W+GAP) + W/2} y={12 + 2*(H+GAP)+48} textAnchor="middle"
+          fontSize="8.5" fontFamily="'Cinzel', serif" fill="#ef4444">機密</text>
       </g>
     </svg>
   )
@@ -233,7 +266,7 @@ export default function DistrictsSection() {
         </motion.div>
 
         {/* Map + detail panel */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
+        <div className="flex flex-col lg:flex-row gap-10 items-start justify-center">
           {/* Map */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -247,19 +280,18 @@ export default function DistrictsSection() {
               <span className="font-noto normal-case text-ash-gray/60">點擊區域查看詳情</span>
             </p>
             <PanemMap selected={selected} onSelect={setSelected} onReveal13={() => setShow13Modal(true)} />
-            {/* Opt-5: hint for District 13 */}
             <p className="font-cinzel text-[10px] tracking-widest text-red-500/50 text-center mt-3 animate-pulse">
               ▲ DISTRICT 13 — CLICK TO UNCLASSIFY
             </p>
           </motion.div>
 
-          {/* Detail panel */}
+          {/* Detail panel — w-72 → w-96, min-h-[280px] → min-h-[360px] */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
-            className="w-full lg:w-72 min-h-[280px]"
+            className="w-full lg:w-96 min-h-[360px]"
           >
             {selectedData ? (
               <motion.div
@@ -267,43 +299,52 @@ export default function DistrictsSection() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
-                className="border border-flame-orange/30 bg-charcoal/80 rounded-sm p-6 relative"
+                className="border border-flame-orange/30 bg-charcoal/80 rounded-sm p-7 relative"
               >
+                {/* 關閉（取消選取）按鈕 */}
+                <button
+                  onClick={() => setSelected(null)}
+                  aria-label="Deselect district"
+                  className="absolute top-4 right-4 w-6 h-6 flex items-center justify-center border border-ash-gray/30 text-ash-gray/40 hover:text-flame-orange hover:border-flame-orange/50 transition-all duration-200 rounded-sm font-cinzel text-xs"
+                >
+                  ✕
+                </button>
+
                 <div
                   className="absolute top-0 left-0 right-0 h-0.5 rounded-t-sm"
                   style={{ background: selectedData.color }}
                 />
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-4 mb-5">
                   <div
-                    className="w-10 h-10 rounded-sm flex items-center justify-center font-cinzel font-bold text-sm"
+                    className="w-12 h-12 rounded-sm flex items-center justify-center font-cinzel font-bold text-base"
                     style={{ background: selectedData.color + '22', color: selectedData.color, border: `1px solid ${selectedData.color}55` }}
                   >
                     {selectedData.num}
                   </div>
                   <div>
-                    <div className="font-cinzel font-bold text-lg text-gray-100">{selectedData.enName}</div>
+                    <div className="font-cinzel font-bold text-xl text-gray-100">{selectedData.enName}</div>
                     <div className="font-noto text-sm text-gold/70">{selectedData.zhName}</div>
                   </div>
                 </div>
-                <div className="space-y-3 text-xs">
-                  <div className="flex gap-2">
-                    <span className="font-cinzel text-ash-gray tracking-widest w-20 shrink-0">INDUSTRY</span>
+                <div className="space-y-4 text-sm">
+                  <div className="flex gap-3">
+                    <span className="font-cinzel text-ash-gray tracking-widest w-24 shrink-0 text-xs pt-0.5">INDUSTRY</span>
                     <span className="font-noto text-smoke">{selectedData.industry}</span>
                   </div>
-                  <div className="flex gap-2">
-                    <span className="font-cinzel text-ash-gray tracking-widest w-20 shrink-0">產業</span>
+                  <div className="flex gap-3">
+                    <span className="font-cinzel text-ash-gray tracking-widest w-24 shrink-0 text-xs pt-0.5">產業</span>
                     <span className="font-noto text-smoke">{selectedData.zhIndustry}</span>
                   </div>
-                  <div className="flex gap-2">
-                    <span className="font-cinzel text-ash-gray tracking-widest w-20 shrink-0">REBELLION</span>
-                    <span className="font-cinzel tracking-wider" style={{ color: selectedData.color }}>
+                  <div className="flex gap-3">
+                    <span className="font-cinzel text-ash-gray tracking-widest w-24 shrink-0 text-xs pt-0.5">REBELLION</span>
+                    <span className="font-cinzel tracking-wider text-sm" style={{ color: selectedData.color }}>
                       {selectedData.rebellion}
                     </span>
                   </div>
                 </div>
               </motion.div>
             ) : (
-              <div className="border border-ash-gray/20 bg-charcoal/40 rounded-sm p-6 h-full flex flex-col items-center justify-center text-center min-h-[200px]">
+              <div className="border border-ash-gray/20 bg-charcoal/40 rounded-sm p-6 h-full flex flex-col items-center justify-center text-center min-h-[280px]">
                 <div className="text-ash-gray/40 mb-3">
                   <svg viewBox="0 0 40 40" className="w-10 h-10 mx-auto fill-none stroke-current">
                     <rect x="6" y="6" width="28" height="28" rx="4" strokeWidth="1.5" strokeDasharray="4 2" />
@@ -318,7 +359,7 @@ export default function DistrictsSection() {
         </div>
       </div>
 
-      {/* Opt-5: District 13 reveal modal */}
+      {/* District 13 reveal modal */}
       {show13Modal && <District13Modal onClose={() => setShow13Modal(false)} />}
     </section>
   )

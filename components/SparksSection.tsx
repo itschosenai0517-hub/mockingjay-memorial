@@ -14,7 +14,7 @@ const quotes = [
   { en: 'Remember, we are the fire.',                                      zh: '記住，我們就是那火焰。',                           source: 'The Rebellion',    align: 'right' },
 ]
 
-// Opt-7: Copy & Share helpers
+// Copy & Share helpers
 function useQuoteActions(quote: typeof quotes[0]) {
   const [copied, setCopied] = useState(false)
   const [shared, setShared] = useState(false)
@@ -27,7 +27,6 @@ function useQuoteActions(quote: typeof quotes[0]) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Fallback for older browsers
       const el = document.createElement('textarea')
       el.value = fullText
       document.body.appendChild(el)
@@ -47,7 +46,6 @@ function useQuoteActions(quote: typeof quotes[0]) {
         setTimeout(() => setShared(false), 2000)
       } catch { /* user cancelled */ }
     } else {
-      // Fallback: copy + toast
       await navigator.clipboard.writeText(fullText).catch(() => {})
       setShared(true)
       setTimeout(() => setShared(false), 2000)
@@ -69,45 +67,49 @@ function QuoteCard({ quote, index }: { quote: typeof quotes[0]; index: number })
       initial={{ opacity: 0, x: isLeft ? -60 : 60 }}
       animate={isInView ? { opacity: 1, x: 0 } : {}}
       transition={{ delay: index * 0.1, duration: 0.7, ease: 'easeOut' }}
-      className={`flex ${isLeft ? 'justify-start' : 'justify-end'}`}
+      // 手機一律置中，md 以上才左右分流
+      className={`flex justify-center ${isLeft ? 'md:justify-start' : 'md:justify-end'}`}
     >
       <div
         className={`relative max-w-xl group ${
           isLeft
             ? 'border-l-2 border-flame-orange/60 pl-6'
-            : 'border-r-2 border-gold/60 pr-6 text-right'
+            // 手機時取消 text-right，md 以上才右對齊
+            : 'border-l-2 md:border-l-0 md:border-r-2 border-flame-orange/60 md:border-gold/60 pl-6 md:pl-0 md:pr-6 md:text-right'
         }`}
       >
         {/* Rebel flyer accent line */}
         <div
-          className={`absolute ${isLeft ? '-left-1' : '-right-1'} top-0 w-1 h-full bg-gradient-to-b from-flame-orange via-gold to-flame-orange opacity-60`}
+          className={`absolute top-0 w-1 h-full bg-gradient-to-b from-flame-orange via-gold to-flame-orange opacity-60 ${
+            isLeft ? '-left-1' : 'left-[-1px] md:left-auto md:-right-1'
+          }`}
         />
 
         {/* Torn paper decoration */}
         <div className="absolute -top-2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-smoke/20 to-transparent" />
 
         {/* Quote number */}
-        <div className={`font-cinzel text-[10px] tracking-[0.4em] text-flame-orange/40 mb-3 uppercase ${isLeft ? '' : 'text-right'}`}>
+        <div className={`font-cinzel text-[10px] tracking-[0.4em] text-flame-orange/40 mb-3 uppercase ${isLeft ? '' : 'md:text-right'}`}>
           #{String(index + 1).padStart(2, '0')} — SPARK
         </div>
 
         {/* English quote */}
-        <blockquote className={`font-playfair italic text-xl md:text-2xl text-gray-100 leading-relaxed mb-3 group-hover:text-flame-bright transition-colors duration-500 ${isLeft ? '' : 'text-right'}`}>
+        <blockquote className={`font-playfair italic text-xl md:text-2xl text-gray-100 leading-relaxed mb-3 group-hover:text-flame-bright transition-colors duration-500 ${isLeft ? '' : 'md:text-right'}`}>
           &ldquo;{quote.en}&rdquo;
         </blockquote>
 
         {/* Chinese translation */}
-        <p className={`font-noto text-base md:text-lg text-gold/70 leading-relaxed mb-4 ${isLeft ? '' : 'text-right'}`}>
+        <p className={`font-noto text-base md:text-lg text-gold/70 leading-relaxed mb-4 ${isLeft ? '' : 'md:text-right'}`}>
           「{quote.zh}」
         </p>
 
         {/* Source */}
-        <div className={`font-cinzel text-xs tracking-[0.25em] text-smoke uppercase mb-4 ${isLeft ? '' : 'text-right'}`}>
+        <div className={`font-cinzel text-xs tracking-[0.25em] text-smoke uppercase mb-4 ${isLeft ? '' : 'md:text-right'}`}>
           — {quote.source}
         </div>
 
-        {/* Opt-7: Copy & Share action buttons */}
-        <div className={`flex items-center gap-2 ${isLeft ? '' : 'justify-end'}`}>
+        {/* Copy & Share action buttons */}
+        <div className={`flex items-center gap-2 ${isLeft ? '' : 'md:justify-end'}`}>
           {/* Copy button */}
           <button
             onClick={handleCopy}

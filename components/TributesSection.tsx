@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 const tributes = [
   {
@@ -11,7 +11,6 @@ const tributes = [
     role: 'The Mockingjay / 反抗之鳥',
     tribute: 'The girl on fire who became a symbol, a spark, and a revolution.',
     tributeZh: '那個燃燒的女孩，成為了一個象徵、一道火花，以及一場革命。',
-    voiceLine: 'If we burn, you burn with us.',
     status: 'ALIVE',
     statusZh: '存活',
     threat: 'EXTREME',
@@ -24,7 +23,6 @@ const tributes = [
     role: 'The Boy with the Bread / 麵包男孩',
     tribute: 'His love was an act of defiance. His survival, an act of grace.',
     tributeZh: '他的愛是一種反抗，他的存活是一種恩典。',
-    voiceLine: 'Stay alive. That is the only thing that matters.',
     status: 'ALIVE',
     statusZh: '存活',
     threat: 'HIGH',
@@ -37,7 +35,6 @@ const tributes = [
     role: 'Victor & Rebel Spy / 勝者與反抗間諜',
     tribute: 'He looked like a god but fought like a man — for Annie, always for Annie.',
     tributeZh: '他外表如神祇，卻以凡人之姿戰鬥——為了安妮，永遠為了安妮。',
-    voiceLine: 'It takes ten times as long to put yourself back together as it does to fall apart.',
     status: 'KIA',
     statusZh: '陣亡',
     threat: 'CRITICAL',
@@ -50,7 +47,6 @@ const tributes = [
     role: 'The Little Bird / 小小的鳥',
     tribute: 'Her song still echoes through the fields. She was the first true spark.',
     tributeZh: '她的歌聲仍迴盪在田野間。她是第一道真正的火花。',
-    voiceLine: 'Will you sing for me? Like your sister does.',
     status: 'KIA',
     statusZh: '陣亡',
     threat: 'LOW',
@@ -63,7 +59,6 @@ const tributes = [
     role: 'Mentor & Survivor / 導師與倖存者',
     tribute: "He drank to forget. He stayed to make sure they didn't have to.",
     tributeZh: '他飲酒是為了忘記；他留下來是為了確保他們不必這樣做。',
-    voiceLine: 'Embrace the probability of your imminent death, and know in your heart that there is nothing I can do to save you.',
     status: 'ALIVE',
     statusZh: '存活',
     threat: 'MODERATE',
@@ -94,7 +89,6 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-60px' })
   const [unlocked, setUnlocked] = useState(false)
-  const [speaking, setSpeaking] = useState(false)
 
   // Only start typewriter when in view + staggered delay
   const [twActive, setTwActive] = useState(false)
@@ -109,33 +103,6 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
 
   const unlockLabel = `FILE UNLOCKED — 檔案已解鎖 — ${tribute.id}`
   const unlockText = useTypewriter(unlockLabel, 40, twActive)
-
-  // E: speak handler with voice selection (prefer female English voice)
-  const handleSpeak = useCallback(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
-    if (speaking) {
-      window.speechSynthesis.cancel()
-      setSpeaking(false)
-      return
-    }
-    setSpeaking(true)
-    window.speechSynthesis.cancel()
-    const utt = new SpeechSynthesisUtterance(tribute.voiceLine)
-    utt.lang = 'en-US'
-    utt.rate = 0.88
-    utt.pitch = 0.95
-
-    // Try to pick a female English voice for more character
-    const voices = window.speechSynthesis.getVoices()
-    const preferred = voices.find(
-      (v) => v.lang.startsWith('en') && /female|woman|samantha|victoria|karen/i.test(v.name)
-    )
-    if (preferred) utt.voice = preferred
-
-    utt.onend = () => setSpeaking(false)
-    utt.onerror = () => setSpeaking(false)
-    window.speechSynthesis.speak(utt)
-  }, [speaking, tribute.voiceLine])
 
   const isKIA = tribute.status === 'KIA'
   const threatColors: Record<string, string> = {
@@ -153,6 +120,8 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ delay: index * 0.12, duration: 0.6 }}
       className="relative border border-ash-gray/30 bg-charcoal/80 rounded-sm overflow-hidden scan-effect group hover:border-flame-orange/40 transition-all duration-500"
+      role="article"
+      aria-label={`${tribute.en} — ${tribute.zh}`}
     >
       {/* CRT scanlines */}
       <div className="absolute inset-0 pointer-events-none z-10">
@@ -229,34 +198,6 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
             「{tribute.tributeZh}」
           </p>
         </div>
-
-        {/* E: Voice quote button */}
-        <button
-          onClick={handleSpeak}
-          className={`mt-4 w-full flex items-center justify-center gap-2 py-2 px-3 border rounded-sm text-xs font-cinzel tracking-widest transition-all duration-300 ${
-            speaking
-              ? 'border-flame-orange/70 text-flame-orange bg-flame-orange/10'
-              : 'border-ash-gray/30 text-ash-gray hover:border-flame-orange/50 hover:text-flame-orange hover:bg-flame-orange/5'
-          }`}
-        >
-          <svg viewBox="0 0 16 16" className="w-3.5 h-3.5 fill-current">
-            {speaking ? (
-              <>
-                <rect x="1" y="5" width="3" height="6" rx="0.5" />
-                <path d="M5 3 L5 13 L9 10 L9 6 Z" />
-                <path d="M11 5 Q13 8 11 11" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-                <path d="M12.5 3.5 Q15.5 8 12.5 12.5" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-              </>
-            ) : (
-              <>
-                <rect x="1" y="5" width="3" height="6" rx="0.5" />
-                <path d="M5 3 L5 13 L9 10 L9 6 Z" />
-                <path d="M11 6 Q12.5 8 11 10" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-              </>
-            )}
-          </svg>
-          {speaking ? 'PLAYING... 播放中' : 'PLAY QUOTE 播放語音'}
-        </button>
       </div>
 
       {/* Corner decorations */}
