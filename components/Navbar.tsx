@@ -11,46 +11,14 @@ const navLinks = [
   { href: '#manifesto', en: 'Manifesto', zh: '反抗宣言' },
 ]
 
-// A: Realistic Mockingjay icon – wings spread, beak right, arrow in talons
+// Mockingjay icon using the actual mockingjay.png image
 export function MockingjayIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="nb-body" cx="50%" cy="40%" r="55%">
-          <stop offset="0%"   stopColor="#ffb347" />
-          <stop offset="50%"  stopColor="#ff6b00" />
-          <stop offset="100%" stopColor="#cc2200" />
-        </radialGradient>
-        <filter id="nb-glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="0.8" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-      </defs>
-      {/* Left wing */}
-      <path d="M24 22 Q16 14 4 10 Q10 18 10 24 Q17 20 24 22Z" fill="url(#nb-body)" filter="url(#nb-glow)" />
-      <path d="M24 22 Q13 18 2 13 Q8 22 9 27 Q16 23 24 22Z"   fill="#ff6b00" opacity="0.6" />
-      {/* Right wing */}
-      <path d="M24 22 Q32 14 44 10 Q38 18 38 24 Q31 20 24 22Z" fill="url(#nb-body)" filter="url(#nb-glow)" />
-      <path d="M24 22 Q35 18 46 13 Q40 22 39 27 Q32 23 24 22Z" fill="#ff6b00" opacity="0.6" />
-      {/* Body */}
-      <ellipse cx="24" cy="27" rx="4" ry="6" fill="url(#nb-body)" filter="url(#nb-glow)" />
-      {/* Head */}
-      <circle cx="24" cy="19" r="4.2" fill="url(#nb-body)" filter="url(#nb-glow)" />
-      {/* Crest */}
-      <path d="M22 15 Q21 10 24 12 Q23 9 25 11 Q24 8 27 11" stroke="#ff9500" strokeWidth="0.8" fill="none" strokeLinecap="round" />
-      {/* Beak – right */}
-      <path d="M27.5 18 L33.5 20 L27.5 22Z" fill="#d4af37" />
-      {/* Eye */}
-      <circle cx="27"   cy="18.5" r="1.3"  fill="#1a0600" />
-      <circle cx="27.5" cy="18"   r="0.45" fill="#ffffff" />
-      {/* Tail */}
-      <path d="M24 33 Q20 40 18 46 Q22 40 24 36 Q26 40 30 46 Q28 40 24 33Z" fill="url(#nb-body)" opacity="0.9" />
-      {/* Arrow */}
-      <line x1="13" y1="36" x2="35" y2="36" stroke="#d4af37" strokeWidth="1.2" />
-      <path d="M32.5 33.5 L36 36 L32.5 38.5Z" fill="#d4af37" />
-      <path d="M15.5 33.5 L12 36 L15.5 38.5Z" fill="#d4af37" />
-      <line x1="13" y1="34.5" x2="13" y2="37.5" stroke="#d4af37" strokeWidth="0.8" />
-    </svg>
+    <img
+      src="/mockingjay.png"
+      alt="Mockingjay"
+      className={className}
+    />
   )
 }
 
@@ -107,7 +75,7 @@ export default function Navbar() {
               <div className="font-cinzel text-xs font-bold text-flame-orange tracking-widest group-hover:text-gold transition-colors">
                 MOCKINGJAY
               </div>
-              <div className="font-noto text-[9px] text-smoke tracking-wider">反抗之鳥</div>
+              <div className="font-noto text-[9px] text-smoke tracking-wider">學舌鳥</div>
             </div>
           </a>
 
