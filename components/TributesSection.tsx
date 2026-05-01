@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { useRef, useState, useEffect } from 'react'
 
 const tributes = [
@@ -209,6 +209,153 @@ function TributeCard({ tribute, index }: { tribute: typeof tributes[0]; index: n
   )
 }
 
+// #15 Quote matching game
+const quizQuotes = [
+  { quote: '"I volunteer! I volunteer as tribute!"', quoteZh: '「我自願！我自願成為貢品！」', answer: 'Katniss Everdeen', options: ['Katniss Everdeen', 'Johanna Mason', 'Finnick Odair', 'Haymitch'] },
+  { quote: '"Real or not real?"', quoteZh: '「真實還是虛假？」', answer: 'Peeta Mellark', options: ['Peeta Mellark', 'Katniss Everdeen', 'Annie Cresta', 'Gale'] },
+  { quote: '"It\'s the things we love most that destroy us."', quoteZh: '「那些我們最深愛的事物，往往將我們摧毀。」', answer: 'President Snow', options: ['President Snow', 'Haymitch', 'Coin', 'Caesar'] },
+  { quote: '"Remember who the real enemy is."', quoteZh: '「記住，誰才是真正的敵人。」', answer: 'Haymitch Abernathy', options: ['Haymitch Abernathy', 'Katniss Everdeen', 'Finnick Odair', 'Cinna'] },
+  { quote: '"You here to finish me off, sweetheart?"', quoteZh: '「你是來給我最後一擊的嗎，甜心？」', answer: 'Peeta Mellark', options: ['Peeta Mellark', 'Finnick Odair', 'Haymitch', 'Thresh'] },
+  { quote: '"Fire is catching."', quoteZh: '「火焰會蔓延。」', answer: 'Katniss Everdeen', options: ['Katniss Everdeen', 'Cinna', 'Peeta Mellark', 'Rue'] },
+]
+
+function QuoteMatchGame() {
+  const [qIdx, setQIdx] = useState(0)
+  const [selected, setSelected] = useState<string | null>(null)
+  const [score, setScore] = useState(0)
+  const [done, setDone] = useState(false)
+  const [shake, setShake] = useState(false)
+
+  const current = quizQuotes[qIdx]
+  const isCorrect = selected === current.answer
+  const isAnswered = selected !== null
+
+  const handleSelect = (opt: string) => {
+    if (isAnswered) return
+    setSelected(opt)
+    if (opt === current.answer) {
+      setScore(s => s + 1)
+    } else {
+      setShake(true)
+      setTimeout(() => setShake(false), 500)
+    }
+  }
+
+  const handleNext = () => {
+    if (qIdx + 1 >= quizQuotes.length) {
+      setDone(true)
+    } else {
+      setQIdx(q => q + 1)
+      setSelected(null)
+    }
+  }
+
+  const reset = () => {
+    setQIdx(0); setSelected(null); setScore(0); setDone(false); setShake(false)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="mt-16 border border-gold/20 bg-charcoal/60 rounded-sm overflow-hidden"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-3 bg-black/30 border-b border-gold/10">
+        <div className="flex items-center gap-2">
+          <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-2 h-2 rounded-full bg-gold/60" />
+          <span className="font-cinzel text-xs tracking-[0.3em] text-gold/60 uppercase">Quote Identification — 名言配對</span>
+        </div>
+        <span className="font-cinzel text-xs text-flame-orange/60">{score} / {quizQuotes.length}</span>
+      </div>
+
+      <div className="p-6">
+        <AnimatePresence mode="wait">
+          {!done ? (
+            <motion.div
+              key={qIdx}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Progress */}
+              <div className="flex gap-1.5 mb-6">
+                {quizQuotes.map((_, i) => (
+                  <div key={i} className="flex-1 h-0.5 rounded-full"
+                    style={{ background: i < qIdx ? '#d4af37' : i === qIdx ? '#ff6b00' : '#333' }} />
+                ))}
+              </div>
+
+              {/* Quote */}
+              <div className={`mb-6 transition-transform ${shake ? 'animate-bounce' : ''}`}>
+                <blockquote className="font-playfair italic text-lg text-gray-200 mb-2 leading-relaxed">
+                  {current.quote}
+                </blockquote>
+                <p className="font-noto text-sm text-gold/50">{current.quoteZh}</p>
+                <p className="font-cinzel text-[10px] tracking-widest text-ash-gray/40 mt-2 uppercase">— Who said this? 這是誰說的？</p>
+              </div>
+
+              {/* Options */}
+              <div className="grid grid-cols-2 gap-3">
+                {current.options.map((opt) => {
+                  const isThis = selected === opt
+                  const isRight = opt === current.answer
+                  let cls = 'border-ash-gray/30 text-smoke hover:border-gold/40 hover:text-gold cursor-pointer'
+                  if (isAnswered) {
+                    if (isRight) cls = 'border-green-500/60 bg-green-500/10 text-green-400 cursor-default'
+                    else if (isThis) cls = 'border-red-500/60 bg-red-500/10 text-red-400 cursor-default'
+                    else cls = 'border-ash-gray/10 text-ash-gray/20 cursor-default'
+                  }
+                  return (
+                    <motion.button key={opt} whileHover={!isAnswered ? { scale: 1.02 } : {}}
+                      onClick={() => handleSelect(opt)}
+                      className={`text-left px-4 py-3 border rounded-sm font-noto text-sm transition-all duration-200 ${cls}`}
+                    >
+                      {opt}
+                    </motion.button>
+                  )
+                })}
+              </div>
+
+              {isAnswered && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-4 flex items-center justify-between">
+                  <span className={`font-cinzel text-xs tracking-widest ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                    {isCorrect ? '✓ Correct — 正確！' : `✗ It was ${current.answer}`}
+                  </span>
+                  <button onClick={handleNext}
+                    className="px-4 py-1.5 border border-flame-orange/40 text-flame-orange font-cinzel text-xs tracking-widest hover:bg-flame-orange/10 transition-all rounded-sm">
+                    {qIdx + 1 >= quizQuotes.length ? 'See Results →' : 'Next →'}
+                  </button>
+                </motion.div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
+              <div className="font-cinzel font-black text-5xl gold-text mb-2">{score}/{quizQuotes.length}</div>
+              <p className="font-playfair italic text-gray-300 mb-1">
+                {score === quizQuotes.length ? '"You know your tributes well."' :
+                  score >= 4 ? '"The rebellion recognizes you."' :
+                  '"Study the archives, soldier."'}
+              </p>
+              <p className="font-noto text-sm text-gold/40 mb-6">
+                {score === quizQuotes.length ? '全部答對！你是真正的飢餓遊戲迷。' :
+                  score >= 4 ? '答得不錯！革命向你致敬。' :
+                  '繼續研究首都的檔案。'}
+              </p>
+              <button onClick={reset}
+                className="px-6 py-2.5 border border-flame-orange/40 text-flame-orange font-cinzel text-xs tracking-widest hover:bg-flame-orange/10 transition-all rounded-sm">
+                Try Again — 再試一次
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  )
+}
+
 export default function TributesSection() {
   const titleRef = useRef(null)
   const isTitleInView = useInView(titleRef, { once: true })
@@ -244,6 +391,9 @@ export default function TributesSection() {
             <TributeCard key={t.id} tribute={t} index={i} />
           ))}
         </div>
+
+        {/* #15 Quote matching game */}
+        <QuoteMatchGame />
       </div>
     </section>
   )

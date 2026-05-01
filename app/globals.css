@@ -220,3 +220,88 @@ body {
   animation: blink 1s infinite;
   color: #ff6b00;
 }
+
+/* =========================================
+   #11 ARENA SCROLL BACKGROUND TRANSITION
+   D12 mine → forest → D13 underground
+   ========================================= */
+
+/* Scroll-driven background gradient that shifts based on scroll position */
+/* Applied via JS in AshCanvas or as a body-level keyframe */
+
+@keyframes arena-shift {
+  0%   { background: radial-gradient(ellipse at 50% 60%, rgba(80,40,10,0.18) 0%, rgba(10,10,10,0) 70%); }
+  33%  { background: radial-gradient(ellipse at 30% 50%, rgba(20,60,20,0.18) 0%, rgba(10,10,10,0) 70%); }
+  66%  { background: radial-gradient(ellipse at 70% 40%, rgba(10,20,50,0.20) 0%, rgba(10,10,10,0) 70%); }
+  100% { background: radial-gradient(ellipse at 50% 60%, rgba(80,10,10,0.18) 0%, rgba(10,10,10,0) 70%); }
+}
+
+/* Section-level atmosphere tints — applied to each section's ::before */
+#hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 80%, rgba(90,40,5,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#districts::before, #quiz::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(20,50,15,0.10) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#relations::before, #timeline::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(10,25,60,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#morse::before, #hanging-tree::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(80,5,5,0.10) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#manifesto::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, rgba(60,30,0,0.14) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Smooth body background color transition keyed to scroll */
+/* We add a CSS variable --scroll-hue via JS but also provide fallback gradient */
+body {
+  background: linear-gradient(180deg,
+    #0a0a0a 0%,
+    #0d0a08 15%,
+    #080d08 30%,
+    #07080f 50%,
+    #0f0707 70%,
+    #0a0a0a 100%
+  ) !important;
+  background-attachment: fixed !important;
+}
+
+/* #12 Glitch utility — applied inline via JS */
+@keyframes glitch-offset {
+  0%   { clip-path: inset(0 0 95% 0); transform: translate(-3px, 0); }
+  20%  { clip-path: inset(25% 0 45% 0); transform: translate(3px, 0); }
+  40%  { clip-path: inset(60% 0 15% 0); transform: translate(-2px, 0); }
+  60%  { clip-path: inset(80% 0 3% 0); transform: translate(2px, 0); }
+  80%  { clip-path: inset(40% 0 35% 0); transform: translate(-1px, 0); }
+  100% { clip-path: inset(0 0 95% 0); transform: translate(0, 0); }
+}

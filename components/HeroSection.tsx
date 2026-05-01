@@ -1,9 +1,94 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useEffect, useRef } from 'react'
+
+// #10 Flame particle cursor trail
+function FlameTrail() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')!
+
+    const resize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    interface Particle {
+      x: number; y: number
+      vx: number; vy: number
+      life: number
+      size: number; hue: number
+    }
+
+    const particles: Particle[] = []
+
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      const cx = e instanceof MouseEvent ? e.clientX : e.touches[0]?.clientX
+      const cy = e instanceof MouseEvent ? e.clientY : e.touches[0]?.clientY
+      if (!cx || !cy) return
+      for (let i = 0; i < 4; i++) {
+        particles.push({
+          x: cx + (Math.random() - 0.5) * 8,
+          y: cy + (Math.random() - 0.5) * 8,
+          vx: (Math.random() - 0.5) * 1.2,
+          vy: -(Math.random() * 2.5 + 1),
+          life: 1,
+          size: 4 + Math.random() * 6,
+          hue: 10 + Math.random() * 30,
+        })
+      }
+    }
+
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('touchmove', onMove)
+
+    let animId: number
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i]
+        p.life -= 0.032
+        if (p.life <= 0) { particles.splice(i, 1); continue }
+        p.x += p.vx; p.y += p.vy; p.vy -= 0.05; p.size *= 0.97
+        const a = Math.max(0, p.life) * 0.85
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size)
+        g.addColorStop(0, `hsla(${p.hue},100%,80%,${a})`)
+        g.addColorStop(0.4, `hsla(${p.hue+15},100%,55%,${a*0.7})`)
+        g.addColorStop(1, `hsla(${p.hue+25},80%,30%,0)`)
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.fillStyle = g; ctx.fill()
+      }
+      animId = requestAnimationFrame(animate)
+    }
+    animate()
+
+    return () => {
+      cancelAnimationFrame(animId)
+      window.removeEventListener('resize', resize)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('touchmove', onMove)
+    }
+  }, [])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none z-[999]"
+      style={{ mixBlendMode: 'screen' }}
+    />
+  )
+}
 
 export default function HeroSection() {
   return (
+    <>
+    <FlameTrail />
     <section
       id="hero"
       className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
@@ -84,6 +169,7 @@ export default function HeroSection() {
         </motion.div>
       </div>
     </section>
+    </>
   )
 }
 

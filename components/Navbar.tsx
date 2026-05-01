@@ -4,11 +4,16 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const navLinks = [
-  { href: '#hero',      en: 'Home',      zh: '首頁' },
-  { href: '#districts', en: 'Districts', zh: '十二個區' },
-  { href: '#sparks',    en: 'Sparks',    zh: '火花語錄' },
-  { href: '#tributes',  en: 'Tributes',  zh: '角色致敬' },
-  { href: '#manifesto', en: 'Manifesto', zh: '反抗宣言' },
+  { href: '#hero',         en: 'Home',       zh: '首頁' },
+  { href: '#districts',    en: 'Districts',  zh: '十二個區' },
+  { href: '#quiz',         en: 'Quiz',       zh: '測驗' },
+  { href: '#relations',    en: 'Web',        zh: '關係圖' },
+  { href: '#timeline',     en: 'Timeline',   zh: '時間線' },
+  { href: '#hanging-tree', en: 'Music',      zh: '音樂' },
+  { href: '#morse',        en: 'Signal',     zh: '密碼' },
+  { href: '#sparks',       en: 'Sparks',     zh: '火花語錄' },
+  { href: '#tributes',     en: 'Tributes',   zh: '角色致敬' },
+  { href: '#manifesto',    en: 'Manifesto',  zh: '反抗宣言' },
 ]
 
 // Mockingjay icon using the actual mockingjay.png image

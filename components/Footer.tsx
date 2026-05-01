@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 // Opt-8: individual finger icons with hover lift + glow
 const saluteFingers = [
@@ -44,11 +44,118 @@ export default function Footer() {
   const [rueHovered, setRueHovered] = useState(false)
   const [hoveredFinger, setHoveredFinger] = useState<number | null>(null)
 
+  // #13 Candle tribute counter — stored in localStorage for persistence
+  const [candleCount, setCandleCount] = useState(0)
+  const [myCandle, setMyCandle] = useState(false)
+  const [candleFlicker, setCandleFlicker] = useState(false)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('mockingjay_candles')
+      const mine = localStorage.getItem('mockingjay_my_candle')
+      if (stored) setCandleCount(parseInt(stored))
+      if (mine) setMyCandle(true)
+    } catch {}
+  }, [])
+
+  const lightCandle = useCallback(() => {
+    if (myCandle) return
+    const newCount = candleCount + 1
+    setCandleCount(newCount)
+    setMyCandle(true)
+    setCandleFlicker(true)
+    setTimeout(() => setCandleFlicker(false), 1200)
+    try {
+      localStorage.setItem('mockingjay_candles', String(newCount))
+      localStorage.setItem('mockingjay_my_candle', '1')
+    } catch {}
+  }, [myCandle, candleCount])
+
   return (
     <footer className="relative z-20 border-t border-ash-gray/20 bg-charcoal/40 py-16 px-6">
       <div className="max-w-4xl mx-auto text-center">
 
-        {/* Opt-8: Three finger salute — re-triggers each time on hover, staggered */}
+        {/* #13 Candle tribute counter */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="mb-12"
+        >
+          <p className="font-cinzel text-xs tracking-[0.4em] text-flame-orange/60 uppercase mb-6">
+            — Light a Candle · 點燃一根蠟燭 —
+          </p>
+
+          {/* Candle cluster */}
+          <div className="flex justify-center items-end gap-4 mb-6 h-20">
+            {[0.85, 1, 0.7, 1.1, 0.9, 0.75, 1.05].map((h, i) => (
+              <div key={i} className="flex flex-col items-center" style={{ opacity: i === 3 ? 1 : 0.6 }}>
+                {/* Flame */}
+                <motion.div
+                  animate={candleFlicker && i === 3
+                    ? { scaleY: [1, 1.8, 0.7, 1.4, 1], scaleX: [1, 0.7, 1.2, 0.8, 1], opacity: [1, 0.8, 1, 0.9, 1] }
+                    : { scaleY: [1, 1.2, 1], scaleX: [1, 0.85, 1] }}
+                  transition={{ duration: candleFlicker ? 0.6 : (1.2 + i * 0.3), repeat: Infinity }}
+                  className="w-2 rounded-full mb-0.5"
+                  style={{
+                    height: `${14 * h}px`,
+                    background: i === 3 ? 'linear-gradient(to top, #ff6b00, #facc15, #fff)' : 'linear-gradient(to top, #ff6b00aa, #facc1580)',
+                    filter: i === 3 ? 'blur(1px) drop-shadow(0 0 4px #ff6b00)' : 'blur(1px)',
+                  }}
+                />
+                {/* Wick */}
+                <div className="w-px h-2 bg-ash-gray/40" />
+                {/* Wax body */}
+                <div
+                  className="w-3 rounded-sm"
+                  style={{
+                    height: `${32 * h}px`,
+                    background: i === 3 ? 'linear-gradient(to bottom, #e5e5e5, #c0c0c0)' : '#666',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Count display */}
+          <div className="mb-4">
+            <motion.span
+              key={candleCount}
+              initial={{ scale: 1.3, color: '#ff6b00' }}
+              animate={{ scale: 1, color: '#d4af37' }}
+              transition={{ duration: 0.6 }}
+              className="font-cinzel text-2xl font-bold"
+            >
+              {candleCount.toLocaleString()}
+            </motion.span>
+            <span className="font-cinzel text-xs text-ash-gray/60 ml-2 tracking-widest">
+              {candleCount === 1 ? 'candle lit' : 'candles lit'} · 根蠟燭已點燃
+            </span>
+          </div>
+
+          {/* Light button */}
+          <motion.button
+            whileHover={!myCandle ? { scale: 1.04 } : {}}
+            whileTap={!myCandle ? { scale: 0.97 } : {}}
+            onClick={lightCandle}
+            disabled={myCandle}
+            className={`px-6 py-2.5 border font-cinzel text-xs tracking-widest rounded-sm transition-all duration-300 ${
+              myCandle
+                ? 'border-gold/30 text-gold/60 cursor-default'
+                : 'border-flame-orange/50 text-flame-orange hover:bg-flame-orange/10 cursor-pointer'
+            }`}
+          >
+            {myCandle ? '🕯 Your candle burns — 你的蠟燭已點燃' : '🕯 Light a Candle — 點燃蠟燭'}
+          </motion.button>
+          {myCandle && (
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-noto text-xs text-gold/40 mt-2">
+              In memory of those who fell · 紀念所有犧牲者
+            </motion.p>
+          )}
+        </motion.div>
+
+        {/* Three finger salute */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -60,6 +60,15 @@ function QuoteCard({ quote, index }: { quote: typeof quotes[0]; index: number })
   const isInView = useInView(ref, { once: true, margin: '-80px' })
   const isLeft = quote.align === 'left'
   const { copied, shared, handleCopy, handleShare } = useQuoteActions(quote)
+  const [glitching, setGlitching] = useState(false)
+
+  // #12 Trigger glitch on hover with 40% chance
+  const handleMouseEnter = () => {
+    if (Math.random() < 0.4) {
+      setGlitching(true)
+      setTimeout(() => setGlitching(false), 400 + Math.random() * 300)
+    }
+  }
 
   return (
     <motion.div
@@ -71,12 +80,16 @@ function QuoteCard({ quote, index }: { quote: typeof quotes[0]; index: number })
       className={`flex justify-center ${isLeft ? 'md:justify-start' : 'md:justify-end'}`}
     >
       <div
-        className={`relative max-w-xl group ${
+        onMouseEnter={handleMouseEnter}
+        className={`relative max-w-xl group transition-all duration-100 ${
           isLeft
             ? 'border-l-2 border-flame-orange/60 pl-6'
-            // 手機時取消 text-right，md 以上才右對齊
             : 'border-l-2 md:border-l-0 md:border-r-2 border-flame-orange/60 md:border-gold/60 pl-6 md:pl-0 md:pr-6 md:text-right'
         }`}
+        style={glitching ? {
+          filter: 'drop-shadow(2px 0 0 rgba(255,107,0,0.9)) drop-shadow(-2px 0 0 rgba(0,220,255,0.6))',
+          transform: `translate(${(Math.random()-0.5)*3}px, 0)`,
+        } : undefined}
       >
         {/* Rebel flyer accent line */}
         <div
