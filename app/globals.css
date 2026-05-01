@@ -11,17 +11,31 @@
   --font-noto: 'Noto Sans TC', sans-serif;
 }
 
-.font-cinzel { font-family: 'Cinzel', Georgia, serif; }
-.font-playfair { font-family: 'Playfair Display', Georgia, serif; }
-.font-caveat { font-family: 'Caveat', cursive; }
-.font-noto { font-family: 'Noto Sans TC', sans-serif; }
+/* Removed duplicate .font-* utility classes — Tailwind fontFamily config covers these */
 
 * {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M4 2 L12 22 L14 14 L22 12 Z' fill='%23ff6b00' stroke='%23d4af37' stroke-width='1'/%3E%3C/svg%3E") 4 2, crosshair;
 }
 
+/* Respect prefers-reduced-motion globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 html {
   scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
@@ -226,9 +240,6 @@ body {
    D12 mine → forest → D13 underground
    ========================================= */
 
-/* Scroll-driven background gradient that shifts based on scroll position */
-/* Applied via JS in AshCanvas or as a body-level keyframe */
-
 @keyframes arena-shift {
   0%   { background: radial-gradient(ellipse at 50% 60%, rgba(80,40,10,0.18) 0%, rgba(10,10,10,0) 70%); }
   33%  { background: radial-gradient(ellipse at 30% 50%, rgba(20,60,20,0.18) 0%, rgba(10,10,10,0) 70%); }
@@ -236,7 +247,7 @@ body {
   100% { background: radial-gradient(ellipse at 50% 60%, rgba(80,10,10,0.18) 0%, rgba(10,10,10,0) 70%); }
 }
 
-/* Section-level atmosphere tints — applied to each section's ::before */
+/* Section-level atmosphere tints */
 #hero::before {
   content: '';
   position: absolute;
@@ -282,8 +293,6 @@ body {
   z-index: 0;
 }
 
-/* Smooth body background color transition keyed to scroll */
-/* We add a CSS variable --scroll-hue via JS but also provide fallback gradient */
 body {
   background: linear-gradient(180deg,
     #0a0a0a 0%,
@@ -296,7 +305,7 @@ body {
   background-attachment: fixed !important;
 }
 
-/* #12 Glitch utility — applied inline via JS */
+/* #12 Glitch utility */
 @keyframes glitch-offset {
   0%   { clip-path: inset(0 0 95% 0); transform: translate(-3px, 0); }
   20%  { clip-path: inset(25% 0 45% 0); transform: translate(3px, 0); }
@@ -304,4 +313,33 @@ body {
   60%  { clip-path: inset(80% 0 3% 0); transform: translate(2px, 0); }
   80%  { clip-path: inset(40% 0 35% 0); transform: translate(-1px, 0); }
   100% { clip-path: inset(0 0 95% 0); transform: translate(0, 0); }
+}
+
+/* Skip to content link for keyboard users */
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: #ff6b00;
+  color: #0a0a0a;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  border-radius: 0 0 4px 4px;
+  transition: top 0.2s;
+}
+.skip-to-content:focus {
+  top: 0;
+  outline: 2px solid #d4af37;
+  outline-offset: 2px;
+}
+
+/* Focus ring — replace outline-none on interactive elements */
+.focus-ring:focus-visible {
+  outline: 2px solid #ff6b00;
+  outline-offset: 2px;
 }

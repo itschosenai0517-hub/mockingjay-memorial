@@ -1,17 +1,21 @@
+import dynamic from 'next/dynamic'
 import AshCanvas from '@/components/AshCanvas'
 import LoadingScreen from '@/components/LoadingScreen'
 import Navbar from '@/components/Navbar'
 import HeroSection from '@/components/HeroSection'
 import DistrictsSection from '@/components/DistrictsSection'
-import QuizSection from '@/components/QuizSection'
-import MorseEasterEgg from '@/components/MorseEasterEgg'
-import HangingTreePlayer from '@/components/HangingTreePlayer'
-import TimelineSection from '@/components/TimelineSection'
-import RelationshipMap from '@/components/RelationshipMap'
-import SparksSection from '@/components/SparksSection'
-import TributesSection from '@/components/TributesSection'
-import ManifestoSection from '@/components/ManifestoSection'
-import Footer from '@/components/Footer'
+
+// Lazy-load heavy interactive components — reduces initial JS bundle
+// These are below the fold and don't need to be parsed on first paint
+const QuizSection        = dynamic(() => import('@/components/QuizSection'))
+const RelationshipMap    = dynamic(() => import('@/components/RelationshipMap'))
+const TimelineSection    = dynamic(() => import('@/components/TimelineSection'))
+const HangingTreePlayer  = dynamic(() => import('@/components/HangingTreePlayer'))
+const MorseEasterEgg     = dynamic(() => import('@/components/MorseEasterEgg'))
+const SparksSection      = dynamic(() => import('@/components/SparksSection'))
+const TributesSection    = dynamic(() => import('@/components/TributesSection'))
+const ManifestoSection   = dynamic(() => import('@/components/ManifestoSection'))
+const Footer             = dynamic(() => import('@/components/Footer'))
 
 export default function Home() {
   return (

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 
-interface Particle {
+interface AshParticle {
   x: number
   y: number
   size: number
@@ -17,15 +17,29 @@ interface Particle {
   ashB: number
 }
 
+interface FlameParticle {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  life: number
+  size: number
+  hue: number
+}
+
 const MAX_PARTICLES_NORMAL = 80
 const MAX_PARTICLES_LOW    = 30
-// 手機（窄螢幕）額外降低粒子數，避免影響捲動效能
 const MAX_PARTICLES_MOBILE = 20
 
 const SPAWN_RATE_NORMAL = 0.12
 const SPAWN_RATE_LOW    = 0.05
 const SPAWN_RATE_MOBILE = 0.04
 
+/**
+ * Unified canvas that renders both ambient ash particles and the flame cursor
+ * trail — previously two separate requestAnimationFrame loops, now merged into
+ * one to halve per-frame canvas work on low-end and mobile devices.
+ */
 export default function AshCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -36,17 +50,16 @@ export default function AshCanvas() {
     if (!ctx) return
 
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReduced) return
 
     let animationId: number
-    let particles: Particle[] = []
+    let ashParticles: AshParticle[] = []
+    const flameParticles: FlameParticle[] = []
 
-    // 手機偵測：寬度 ≤ 768px 視為手機
-    const isMobile = window.innerWidth <= 768
+    const isMobile  = window.innerWidth <= 768
     const isLowPerf = !isMobile && typeof navigator !== 'undefined' && navigator.hardwareConcurrency <= 2
 
-    const maxParticles = isMobile ? MAX_PARTICLES_MOBILE : isLowPerf ? MAX_PARTICLES_LOW : MAX_PARTICLES_NORMAL
-    const spawnRate    = isMobile ? SPAWN_RATE_MOBILE    : isLowPerf ? SPAWN_RATE_LOW    : SPAWN_RATE_NORMAL
+    const maxAsh   = prefersReduced ? 0 : (isMobile ? MAX_PARTICLES_MOBILE : isLowPerf ? MAX_PARTICLES_LOW : MAX_PARTICLES_NORMAL)
+    const spawnRate = isMobile ? SPAWN_RATE_MOBILE : isLowPerf ? SPAWN_RATE_LOW : SPAWN_RATE_NORMAL
 
     const resize = () => {
       canvas.width  = window.innerWidth
@@ -55,7 +68,8 @@ export default function AshCanvas() {
     resize()
     window.addEventListener('resize', resize)
 
-    const createParticle = (): Particle => ({
+    // ── Ash particles ────────────────────────────────────────────────────────
+    const createAsh = (): AshParticle => ({
       x: Math.random() * canvas.width,
       y: canvas.height + 10,
       size: Math.random() * 4 + 1,
@@ -70,19 +84,43 @@ export default function AshCanvas() {
       ashB: 100 + Math.floor(Math.random() * 20),
     })
 
-    const seedCount = Math.min(isMobile ? 10 : 40, maxParticles)
-    for (let i = 0; i < seedCount; i++) {
-      const p = createParticle()
-      p.y = Math.random() * canvas.height
-      particles.push(p)
+    if (!prefersReduced) {
+      const seedCount = Math.min(isMobile ? 10 : 40, maxAsh)
+      for (let i = 0; i < seedCount; i++) {
+        const p = createAsh()
+        p.y = Math.random() * canvas.height
+        ashParticles.push(p)
+      }
     }
 
+    // ── Flame cursor trail ───────────────────────────────────────────────────
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      if (prefersReduced) return
+      const cx = e instanceof MouseEvent ? e.clientX : e.touches[0]?.clientX
+      const cy = e instanceof MouseEvent ? e.clientY : e.touches[0]?.clientY
+      if (!cx || !cy) return
+      for (let i = 0; i < 4; i++) {
+        flameParticles.push({
+          x: cx + (Math.random() - 0.5) * 8,
+          y: cy + (Math.random() - 0.5) * 8,
+          vx: (Math.random() - 0.5) * 1.2,
+          vy: -(Math.random() * 2.5 + 1),
+          life: 1,
+          size: 4 + Math.random() * 6,
+          hue: 10 + Math.random() * 30,
+        })
+      }
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('touchmove', onMove, { passive: true })
+
+    // ── Unified draw loop ────────────────────────────────────────────────────
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-
       const now = Date.now()
 
-      particles.forEach((p, i) => {
+      // Draw ash
+      ashParticles.forEach((p, i) => {
         ctx.save()
         ctx.translate(p.x, p.y)
         ctx.rotate(p.rotation)
@@ -112,15 +150,32 @@ export default function AshCanvas() {
         p.opacity -= 0.0008
 
         if (p.y < -20 || p.opacity <= 0) {
-          particles[i] = createParticle()
+          ashParticles[i] = createAsh()
         }
       })
 
-      if (Math.random() < spawnRate && particles.length < maxParticles) {
-        particles.push(createParticle())
-      } else if (particles.length > maxParticles) {
-        particles.splice(0, particles.length - maxParticles)
+      if (Math.random() < spawnRate && ashParticles.length < maxAsh) {
+        ashParticles.push(createAsh())
+      } else if (ashParticles.length > maxAsh) {
+        ashParticles.splice(0, ashParticles.length - maxAsh)
       }
+
+      // Draw flame trail (screen blend mode via globalCompositeOperation)
+      ctx.globalCompositeOperation = 'screen'
+      for (let i = flameParticles.length - 1; i >= 0; i--) {
+        const p = flameParticles[i]
+        p.life -= 0.032
+        if (p.life <= 0) { flameParticles.splice(i, 1); continue }
+        p.x += p.vx; p.y += p.vy; p.vy -= 0.05; p.size *= 0.97
+        const a = Math.max(0, p.life) * 0.85
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size)
+        g.addColorStop(0, `hsla(${p.hue},100%,80%,${a})`)
+        g.addColorStop(0.4, `hsla(${p.hue + 15},100%,55%,${a * 0.7})`)
+        g.addColorStop(1, `hsla(${p.hue + 25},80%,30%,0)`)
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.fillStyle = g; ctx.fill()
+      }
+      ctx.globalCompositeOperation = 'source-over'
 
       animationId = requestAnimationFrame(draw)
     }
@@ -130,6 +185,8 @@ export default function AshCanvas() {
     return () => {
       cancelAnimationFrame(animationId)
       window.removeEventListener('resize', resize)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('touchmove', onMove)
     }
   }, [])
 

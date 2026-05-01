@@ -1,94 +1,24 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { useEffect, useRef } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import Image from 'next/image'
 
-// #10 Flame particle cursor trail
-function FlameTrail() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')!
-
-    const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-    }
-    resize()
-    window.addEventListener('resize', resize)
-
-    interface Particle {
-      x: number; y: number
-      vx: number; vy: number
-      life: number
-      size: number; hue: number
-    }
-
-    const particles: Particle[] = []
-
-    const onMove = (e: MouseEvent | TouchEvent) => {
-      const cx = e instanceof MouseEvent ? e.clientX : e.touches[0]?.clientX
-      const cy = e instanceof MouseEvent ? e.clientY : e.touches[0]?.clientY
-      if (!cx || !cy) return
-      for (let i = 0; i < 4; i++) {
-        particles.push({
-          x: cx + (Math.random() - 0.5) * 8,
-          y: cy + (Math.random() - 0.5) * 8,
-          vx: (Math.random() - 0.5) * 1.2,
-          vy: -(Math.random() * 2.5 + 1),
-          life: 1,
-          size: 4 + Math.random() * 6,
-          hue: 10 + Math.random() * 30,
-        })
-      }
-    }
-
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('touchmove', onMove)
-
-    let animId: number
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i]
-        p.life -= 0.032
-        if (p.life <= 0) { particles.splice(i, 1); continue }
-        p.x += p.vx; p.y += p.vy; p.vy -= 0.05; p.size *= 0.97
-        const a = Math.max(0, p.life) * 0.85
-        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size)
-        g.addColorStop(0, `hsla(${p.hue},100%,80%,${a})`)
-        g.addColorStop(0.4, `hsla(${p.hue+15},100%,55%,${a*0.7})`)
-        g.addColorStop(1, `hsla(${p.hue+25},80%,30%,0)`)
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-        ctx.fillStyle = g; ctx.fill()
-      }
-      animId = requestAnimationFrame(animate)
-    }
-    animate()
-
-    return () => {
-      cancelAnimationFrame(animId)
-      window.removeEventListener('resize', resize)
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('touchmove', onMove)
-    }
-  }, [])
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-[999]"
-      style={{ mixBlendMode: 'screen' }}
-    />
-  )
-}
+// Animation timing constants — centralised so they stay in sync with LoadingScreen
+const HERO_DELAYS = {
+  logo:     2.0,
+  title:    2.4,
+  divider:  2.8,
+  quote:    3.0,
+  scroll:   3.5,
+} as const
 
 export default function HeroSection() {
+  const reduce = useReducedMotion()
+
+  // When motion is reduced, collapse delays so content appears instantly
+  const d = (base: number) => (reduce ? 0 : base)
+
   return (
-    <>
-    <FlameTrail />
     <section
       id="hero"
       className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
@@ -100,11 +30,11 @@ export default function HeroSection() {
       </div>
 
       <div className="relative z-20 flex flex-col items-center text-center px-6 max-w-4xl mx-auto">
-        {/* A: Upgraded Mockingjay SVG */}
+        {/* Mockingjay logo */}
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 2.0, duration: 1, ease: 'easeOut' }}
+          transition={{ delay: d(HERO_DELAYS.logo), duration: 1, ease: 'easeOut' }}
           className="relative mb-10"
         >
           <MockingjayHeroLogo />
@@ -114,7 +44,7 @@ export default function HeroSection() {
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.4, duration: 0.9 }}
+          transition={{ delay: d(HERO_DELAYS.title), duration: 0.9 }}
         >
           <h1 className="font-cinzel font-black text-5xl md:text-7xl lg:text-8xl tracking-wider mb-2 flame-text">
             THE MOCKINGJAY
@@ -131,7 +61,7 @@ export default function HeroSection() {
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
-          transition={{ delay: 2.8, duration: 0.8 }}
+          transition={{ delay: d(HERO_DELAYS.divider), duration: 0.8 }}
           className="w-64 h-px bg-gradient-to-r from-transparent via-flame-orange to-transparent mb-8"
         />
 
@@ -139,7 +69,7 @@ export default function HeroSection() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 3.0, duration: 0.9 }}
+          transition={{ delay: d(HERO_DELAYS.quote), duration: 0.9 }}
           className="max-w-2xl"
         >
           <blockquote className="font-playfair italic text-xl md:text-2xl text-gray-200 mb-3 leading-relaxed">
@@ -157,29 +87,30 @@ export default function HeroSection() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 3.5, duration: 1 }}
+          transition={{ delay: d(HERO_DELAYS.scroll), duration: 1 }}
           className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          aria-hidden="true"
         >
           <span className="font-cinzel text-xs text-smoke tracking-[0.3em] uppercase">Scroll</span>
           <motion.div
-            animate={{ y: [0, 8, 0] }}
+            animate={reduce ? {} : { y: [0, 8, 0] }}
             transition={{ duration: 1.5, repeat: Infinity }}
             className="w-px h-12 bg-gradient-to-b from-flame-orange to-transparent"
           />
         </motion.div>
       </div>
     </section>
-    </>
   )
 }
 
-// A: Full hero Mockingjay – detailed realistic bird with outspread wings
 function MockingjayHeroLogo() {
+  const reduce = useReducedMotion()
+
   return (
     <div className="relative w-48 h-48 md:w-64 md:h-64">
       {/* Rotating outer ring */}
       <motion.div
-        animate={{ rotate: 360 }}
+        animate={reduce ? {} : { rotate: 360 }}
         transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
         className="absolute inset-0"
       >
@@ -193,8 +124,8 @@ function MockingjayHeroLogo() {
           />
           <defs>
             <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#ff6b00" stopOpacity="0.8" />
-              <stop offset="50%" stopColor="#d4af37" stopOpacity="0.5" />
+              <stop offset="0%"   stopColor="#ff6b00" stopOpacity="0.8" />
+              <stop offset="50%"  stopColor="#d4af37" stopOpacity="0.5" />
               <stop offset="100%" stopColor="#ff6b00" stopOpacity="0.8" />
             </linearGradient>
           </defs>
@@ -204,17 +135,22 @@ function MockingjayHeroLogo() {
       {/* Glow ring */}
       <div className="absolute inset-4 rounded-full border border-flame-orange/20 shadow-[0_0_30px_rgba(255,107,0,0.3)]" />
 
-      {/* A: Mockingjay PNG image */}
-      <img
-        src="/mockingjay.png"
-        alt="Mockingjay"
-        className="absolute inset-0 w-full h-full object-contain"
-        style={{ filter: 'drop-shadow(0 0 18px rgba(255,107,0,0.8))' }}
-      />
+      {/* Mockingjay image — Next.js Image for automatic optimisation & WebP */}
+      <div className="absolute inset-0">
+        <Image
+          src="/mockingjay.png"
+          alt="Mockingjay — symbol of the rebellion"
+          fill
+          sizes="(max-width: 768px) 192px, 256px"
+          className="object-contain"
+          priority
+          style={{ filter: 'drop-shadow(0 0 18px rgba(255,107,0,0.8))' }}
+        />
+      </div>
 
       {/* Flame glow overlay */}
       <motion.div
-        animate={{ opacity: [0.3, 0.7, 0.3] }}
+        animate={reduce ? {} : { opacity: [0.3, 0.7, 0.3] }}
         transition={{ duration: 2, repeat: Infinity }}
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-flame-orange/20 blur-2xl pointer-events-none"
       />

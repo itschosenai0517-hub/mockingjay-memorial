@@ -74,13 +74,14 @@ const districtDetails: Record<DistrictNum, { name: string; zh: string; color: st
 }
 
 export default function QuizSection() {
-  const [step, setStep] = useState<'intro' | 'quiz' | 'result'>('intro')
-  const [current, setCurrent] = useState(0)
-  const [scores, setScores] = useState<Record<number, number>>({1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0})
-  const [result, setResult] = useState<DistrictNum | null>(null)
+  const [step,     setStep]     = useState<'intro' | 'quiz' | 'result'>('intro')
+  const [current,  setCurrent]  = useState(0)
+  const [scores,   setScores]   = useState<Record<number, number>>({1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0})
+  const [result,   setResult]   = useState<DistrictNum | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
 
   const handleAnswer = (optionIdx: number) => {
+    if (selected !== null) return // already answered
     setSelected(optionIdx)
     const s = questions[current].options[optionIdx].scores
     const newScores = { ...scores }
@@ -94,7 +95,6 @@ export default function QuizSection() {
         setCurrent(current + 1)
         setSelected(null)
       } else {
-        // Find result
         let maxD = 1 as DistrictNum
         let maxV = -1
         Object.entries(newScores).forEach(([k, v]) => {
@@ -153,7 +153,7 @@ export default function QuizSection() {
               className="border border-flame-orange/30 bg-charcoal/80 rounded-sm p-8 text-center"
             >
               <div className="mb-6">
-                <svg viewBox="0 0 80 80" className="w-16 h-16 mx-auto mb-4 opacity-60">
+                <svg viewBox="0 0 80 80" className="w-16 h-16 mx-auto mb-4 opacity-60" aria-hidden="true">
                   <circle cx="40" cy="40" r="36" fill="none" stroke="#ff6b00" strokeWidth="1.5" strokeDasharray="6 3" />
                   <text x="40" y="46" textAnchor="middle" fontSize="22" fontFamily="Cinzel" fill="#ff6b00" fontWeight="bold">?</text>
                 </svg>
@@ -168,7 +168,7 @@ export default function QuizSection() {
               </p>
               <button
                 onClick={() => setStep('quiz')}
-                className="px-8 py-3 border border-flame-orange/60 text-flame-orange font-cinzel text-sm tracking-widest hover:bg-flame-orange/10 transition-all duration-300 uppercase rounded-sm"
+                className="px-8 py-3 border border-flame-orange/60 text-flame-orange font-cinzel text-sm tracking-widest hover:bg-flame-orange/10 transition-all duration-300 uppercase rounded-sm focus-ring"
               >
                 Begin — 開始
               </button>
@@ -192,7 +192,14 @@ export default function QuizSection() {
                   </span>
                   <span className="font-cinzel text-xs text-flame-orange/60">{Math.round(progress)}%</span>
                 </div>
-                <div className="h-px bg-ash-gray/20 rounded-full overflow-hidden">
+                <div
+                  className="h-px bg-ash-gray/20 rounded-full overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={current}
+                  aria-valuemin={0}
+                  aria-valuemax={questions.length}
+                  aria-label={`Question ${current + 1} of ${questions.length}`}
+                >
                   <motion.div
                     className="h-full bg-gradient-to-r from-flame-red to-flame-orange"
                     initial={{ width: `${(current / questions.length) * 100}%` }}
@@ -203,21 +210,25 @@ export default function QuizSection() {
               </div>
 
               {/* Question */}
-              <div className="mb-8">
-                <p className="font-playfair text-xl text-gray-100 mb-1 leading-relaxed">
+              <div className="mb-8" role="group" aria-labelledby={`q-label-${current}`}>
+                <p id={`q-label-${current}`} className="font-playfair text-xl text-gray-100 mb-1 leading-relaxed">
                   {questions[current].q}
                 </p>
-                <p className="font-noto text-sm text-gold/50">{questions[current].zh}</p>
+                <p className="font-noto text-sm text-gold/50" aria-hidden="true">{questions[current].zh}</p>
               </div>
 
-              {/* Options */}
-              <div className="space-y-3">
+              {/* Options — proper <button> elements for keyboard accessibility */}
+              <div className="space-y-3" role="list">
                 {questions[current].options.map((opt, i) => (
                   <motion.button
                     key={i}
-                    onClick={() => selected === null && handleAnswer(i)}
+                    type="button"
+                    onClick={() => handleAnswer(i)}
+                    disabled={selected !== null && selected !== i}
                     whileHover={selected === null ? { x: 4 } : {}}
-                    className={`w-full text-left px-5 py-4 border rounded-sm transition-all duration-200 ${
+                    role="listitem"
+                    aria-pressed={selected === i}
+                    className={`w-full text-left px-5 py-4 border rounded-sm transition-all duration-200 focus-ring ${
                       selected === i
                         ? 'border-flame-orange bg-flame-orange/20 text-flame-orange'
                         : selected !== null
@@ -229,7 +240,7 @@ export default function QuizSection() {
                       {String.fromCharCode(65 + i)}.
                     </span>
                     <span className="font-noto text-sm">{opt.text}</span>
-                    <span className="font-noto text-xs text-gold/40 block mt-0.5 ml-6">{opt.zh}</span>
+                    <span className="font-noto text-xs text-gold/40 block mt-0.5 ml-6" aria-hidden="true">{opt.zh}</span>
                   </motion.button>
                 ))}
               </div>
@@ -244,14 +255,14 @@ export default function QuizSection() {
               transition={{ duration: 0.6 }}
               className="border rounded-sm p-8 text-center relative overflow-hidden"
               style={{ borderColor: d.color + '60', background: 'rgba(20,20,20,0.9)' }}
+              role="region"
+              aria-label={`Result: District ${result} — ${d.name}`}
             >
-              {/* Top color bar */}
               <div className="absolute top-0 left-0 right-0 h-1" style={{ background: d.color }} />
-
-              {/* Glow */}
               <div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-3xl opacity-10 pointer-events-none"
                 style={{ background: d.color }}
+                aria-hidden="true"
               />
 
               <motion.div
@@ -265,6 +276,7 @@ export default function QuizSection() {
                 <div
                   className="font-cinzel font-black text-7xl md:text-8xl mb-2"
                   style={{ color: d.color, textShadow: `0 0 30px ${d.color}80` }}
+                  aria-label={`District ${result}`}
                 >
                   {result}
                 </div>
@@ -287,7 +299,7 @@ export default function QuizSection() {
                 <div>
                   <button
                     onClick={reset}
-                    className="px-6 py-2.5 border border-ash-gray/30 text-ash-gray font-cinzel text-xs tracking-widest hover:border-flame-orange/50 hover:text-flame-orange transition-all duration-300 uppercase rounded-sm"
+                    className="px-6 py-2.5 border border-ash-gray/30 text-ash-gray font-cinzel text-xs tracking-widest hover:border-flame-orange/50 hover:text-flame-orange transition-all duration-300 uppercase rounded-sm focus-ring"
                   >
                     Try Again — 再試一次
                   </button>
